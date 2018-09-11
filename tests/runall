@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# ./runall [-r rounds] [-p threads] [-l]
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+export THREADS=`nproc --all`
+export ROUNDS=3
+export LARGE=0
+export ARGS="./runall [-r rounds] [-p threads]"
+while getopts ":p:r:l" option
+do
+        case "${option}"
+        in
+          r) ROUNDS=$OPTARG;;
+          p) THREADS=$OPTARG;;
+          l) LARGE=1;;
+          \?) echo $ARGS >&2; exit 1;;
+          :)  echo $ARGS >&2; exit 1;;
+        esac
+done
+
+date
+echo $LARGE
+if [[ $LARGE == 1 ]]
+then
+    echo "including large inputs"
+fi
+echo threads=$THREADS
+echo rounds=$ROUNDS
+export CILK_NWORKERS=$THREADS
+
+head="numactl -i all"
+if (hash numactl ls 2>/dev/null) 
+then 
+    head="numactl -i all" 
+else 
+    head="" 
+fi
+
+if [ $THREADS == 1 ]
+then
+    head=""
+fi
+
+# make clean
+make aug_sum
+
+echo
+printf "${RED}With augmentation${NC}\n"
+echo 'AUG' |tee -a res.txt
+# union
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000000 0 |tee -a res.txt
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000 0 |tee -a res.txt
+
+# find
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000000 12 |tee -a res.txt
+
+# insert
+if [ $THREADS == 1 ]
+then
+$head ./aug_sum -r $ROUNDS -n 100000000 20 |tee -a res.txt
+fi
+
+# fromseq
+$head ./aug_sum -r $ROUNDS -n 100000000 4 |tee -a res.txt
+
+
+# filter
+$head ./aug_sum -r $ROUNDS -n 100000000 5 |tee -a res.txt
+
+# multi insert
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000000 14 |tee -a res.txt
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000 14 |tee -a res.txt
+
+# range
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 10000000 18 |tee -a res.txt
+
+# aug left
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000000 22 |tee -a res.txt
+
+# aug range
+$head ./aug_sum -r $ROUNDS -n 100000000 -m 100000000 19 |tee -a res.txt
+
+make aug_sumNA
+
+echo
+printf "${RED}Without augmentation${NC}\n"
+echo 'NoAug' |tee -a res.txt
+# union
+$head ./aug_sumNA -r $ROUNDS -n 100000000 -m 100000000 0 |tee -a res.txt
+
+# insert
+if [ $THREADS == 1 ]
+then
+    $head ./aug_sumNA -r $ROUNDS -n 100000000 20 |tee -a res.txt
+fi
+
+# fromseq
+$head ./aug_sumNA -r $ROUNDS -n 100000000 4 |tee -a res.txt
+
+# range
+$head ./aug_sumNA -r $ROUNDS -n 100000000 -m 10000000 18 |tee -a res.txt
+
+# STL
+
+if [ $THREADS == 1 ]
+then
+    
+# tree union
+$head ./aug_sumNA -r $ROUNDS -n 100000000 -m 100000000 10 |tee -a res.txt
+$head ./aug_sumNA -r $ROUNDS -n 100000000 -m 100000 10 |tee -a res.txt
+
+# vector union
+$head ./aug_sumNA -r $ROUNDS -n 100000000 -m 100000000 11 |tee -a res.txt
+$head ./aug_sumNA -r $ROUNDS -n 100000000 -m 100000 11 |tee -a res.txt
+
+# insert
+$head ./aug_sumNA -r $ROUNDS -n 100000000 16 |tee -a res.txt
+fi
+
+# Large inputs
+
+echo
+printf "${RED}Large input${NC}\n"
+echo 'LARGE' |tee -a res.txt
+if [[ $LARGE == 1 ]]
+then
+    $head ./aug_sum -r $ROUNDS -n 10000000000 4 |tee -a res.txt
+    $head ./aug_sum -r $ROUNDS -n 10000000000 -m 100000000 19 |tee -a res.txt
+fi
