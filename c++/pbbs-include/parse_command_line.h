@@ -83,7 +83,7 @@ struct commandLine {
     for (int i = 1; i < argc-1; i++)
       if ((string) argv[i] == option) {
 	long r = atol(argv[i+1]);
-	if (r < 1) badArgument();
+	if (r < 0) badArgument();
 	return r;
       }
     return defaultValue;
@@ -93,7 +93,7 @@ struct commandLine {
     for (int i = 1; i < argc-1; i++)
       if ((string) argv[i] == option) {
 	int r = atoi(argv[i+1]);
-	if (r < 1) badArgument();
+	if (r < 0) badArgument();
 	return r;
       }
     return defaultValue;

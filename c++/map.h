@@ -404,6 +404,10 @@ public:
   static M upTo(M& a, K kr) {
     return M(Tree::left(a.root, kr));
   }
+  
+  static M downTo(M& a, K kr) {
+    return M(Tree::right(a.root, kr));
+  }
 
   template<class Ma, class F>
   static M map(Ma a, const F& f) {
