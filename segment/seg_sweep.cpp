@@ -213,19 +213,19 @@ int main(int argc, char** argv) {
   // d (dist) != 0 means average query window edge length of w/2
   // t (query_type): 0 for report-all, 1 for report-sum, 2 for input segs with controlled length (the projection on x-axis is of length x/2 on average)
   if (argc == 1) {
-	  cout << "./rt_test [-n size] [-r rounds] [-q queries] [-d dist] [-w window] [-t querytype] [-x inputseglength]" << endl;
+	  cout << "./seg_sweep [-n size] [-r rounds] [-q queries] [-d dist] [-w window] [-t querytype]" << endl;
 	  cout << "n: input size" << endl;
 	  cout << "run in r rounds and q queries" << endl;
 	  cout << "d = 0  means random query windows" << endl;
 	  cout << "d != 0 means average query window edge length of w/2" << endl;
-	  cout << "t: 0 for report-all, 1 for report-sum, 2 input segments with controlled length (the projection on x-axis is of length x on average)" << endl;
+	  cout << "t: 0 for report-all, 1 for report-sum" << endl;
 	  //cout << "b:number of blocks" << endl;
 	  exit(1);
   }
 	srand(2017);
 	
 	commandLine P(argc, argv,
-		"[-n size] [-r rounds] [-q queries] [-d dist] [-w window] [-t querytype] [-x inputseglength]");
+		"[-n size] [-r rounds] [-q queries] [-d dist] [-w window] [-t querytype]");
 
     size_t n = P.getOptionLongValue("-n", 100000000);
 	dist = P.getOptionIntValue("-d", 0);

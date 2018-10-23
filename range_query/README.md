@@ -24,4 +24,4 @@ where 'size' stands for the number of points, 'rmin' and 'rmax' are the upper an
 
 [1] Yihan Sun, Daniel Ferizovic, and Guy E. Blelloch. PAM: Parallel Augmented Maps. PPoPP 2018. 
 
-[2] Yihan Sun and Guy Blelloch. Parallel Range, Segment and Rectangle Queries with Augmented Maps. ArXiv:1803.08621.
+[2] Yihan Sun and Guy Blelloch. Parallel Range, Segment and Rectangle Queries with Augmented Maps. ALENEX 2019.

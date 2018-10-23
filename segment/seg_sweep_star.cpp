@@ -76,8 +76,8 @@ void reset_timers() {
 }
 
 int main(int argc, char** argv) {
-    if (argc != 9) {
-      cout << argv[0] << " <n> <min> <max> <rounds> <num_queries> <dist> <win> <qtype> [num_blocks]"<< std::endl;
+    if (argc != 6) {
+      cout << argv[0] << " <n> <min> <max> <rounds> <num_queries>"<< std::endl;
       exit(1);
     }
     srand(2017);
@@ -86,12 +86,7 @@ int main(int argc, char** argv) {
     int min_val  = str_to_int(argv[2]);
     int max_val  = str_to_int(argv[3]);
     size_t iterations = str_to_int(argv[4]);
-    dist = str_to_int(argv[6]);
-    win = str_to_int(argv[7]);
     int num_queries  = str_to_int(argv[5]);
-
-    int type = str_to_int(argv[8]);
-    if (type == 0) return 0;
 
     size_t threads = __cilkrts_get_nworkers();
 
@@ -124,7 +119,6 @@ int main(int argc, char** argv) {
          << "\tp=" << threads
          << "\tmin-val=" << min_val
          << "\tmax-val=" << max_val
-         << "\twin-mean=" << win
          << "\titeration=" << i
          << "\tbuild-time=" << total_tm.get_total()
          << "\treserve-time=" << reserve_tm.get_total()

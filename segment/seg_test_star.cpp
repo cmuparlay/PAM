@@ -19,23 +19,6 @@ int str_to_int(char* str) {
   return strtol(str, NULL, 10);
 }
 
-/*
-segment_2d* generate_segments(size_t n, int a, int b) {
-  pbbs::random r = pbbs::default_random;
-  segment_2d *v = new segment_2d[n];
-  parallel_for (size_t i = 0; i < n; i++) {
-    int y = a + r.ith_rand(3*i)%(b-a);
-    int x1 = a + r.ith_rand(3*i+1)%(b-a);
-    int x2 = a + r.ith_rand(3*i+2)%(b-a);
-    if (x1 < x2) v[i] = segment_2d(y,segment_1d(x1,x2));
-    else v[i] = segment_2d(y,segment_1d(x2,x1));
-  }
-  return v;
-}*/
-
-int win;
-int dist;
-
 double gaussrand()
 {
   static double V1, V2, S;
@@ -95,15 +78,10 @@ segment_2d* generate_segs(size_t n, int a, int b) {
 
 segment_2d* generate_queries(size_t q, int a, int b) {
     segment_2d *v = new segment_2d[q];
-    //#pragma omp parallel for
     cilk_for (int i = 0; i < q; ++i) {
         int x = random_hash('q'*'x', i, a, b);
 		    int yl = random_hash('y'+1, i, a, b);
 
-        //double dy_g = gaussrand();
-        //int dy = floor(dy_g*win/2 + win);
-		//int dy = random_hash('q'*'y'+2, i, 0, win);
-	    //int yr = yl + dy;
 		int yr = random_hash('y'*'y'+2, i, a, b);
        if (yl > yr) {
   	  		int t = yl; yl = yr; yr = t;
@@ -120,8 +98,8 @@ void reset_timers() {
 }
 
 int main(int argc, char** argv) {
-    if (argc != 9) {
-      cout << argv[0] << " <n> <min> <max> <rounds> <num_queries> <dist> <win> <qtype> [num_blocks]"<< std::endl;
+    if (argc != 6) {
+      cout << argv[0] << " <n> <min> <max> <rounds> <num_queries>"<< std::endl;
       exit(1);
     }
     srand(2017);
@@ -130,12 +108,7 @@ int main(int argc, char** argv) {
     int min_val  = str_to_int(argv[2]);
     int max_val  = str_to_int(argv[3]);
     size_t iterations = str_to_int(argv[4]);
-    dist = str_to_int(argv[6]);
-    win = str_to_int(argv[7]);
     int num_queries  = str_to_int(argv[5]);
-
-    int type = str_to_int(argv[8]);
-    if (type == 0) return 0;
 
     size_t threads = __cilkrts_get_nworkers();
 
@@ -170,7 +143,6 @@ int main(int argc, char** argv) {
          << "\tp=" << threads
          << "\tmin-val=" << min_val
          << "\tmax-val=" << max_val
-         << "\twin-mean=" << win
          << "\titeration=" << i
          << "\tbuild-time=" << build_tm.get_total()
          << "\treserve-time=" << reserve_tm.get_total()
