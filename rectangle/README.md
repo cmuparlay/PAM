@@ -1,4 +1,4 @@
-# 2D Segment Query
+# 2D Rectangle Query
 
 This application deals with 2D rectangle stabbing query: given a set of n rectangles on two dimensions, and a query point, return the count (counting query) or the full list (report-all queries) of all input rectangles that contain the query point. Our implementation include two tree structures and two sweepline algorithms, making use of PAM. The algorithms are introduced in our paper [1].
 
