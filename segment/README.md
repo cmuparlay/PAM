@@ -1,4 +1,4 @@
-# 2D Range Query
+# 2D Segment Query
 
 This application deals with 2D segment query: given a set of n non-crossing segments on two dimensions, and a query vertical segment, return the count (counting query) or the full list (report-all queries) of all input segments intersecting query segment. Our implementation include two tree structures and two sweepline algorithms, making use of PAM. The algorithms are introduced in our paper [1].
 
