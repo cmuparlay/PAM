@@ -29,8 +29,8 @@ To directly run the executable files, one can try:
 ```
 ./seg_sweep [-n size] [-r rounds] [-q num_queries] [-d dist] [-w window] [-t querytype]
 ./seg_test [-n size] [-r rounds] [-q num_queries] [-d dist] [-w window] [-t querytype]
-./set_test_star <n> <min> <max> <rounds> <num_queries>
-./set_sweep_star <size> <min> <max> <rounds> <num_queries>
+./seg_test_star <n> <min> <max> <rounds> <num_queries>
+./seg_sweep_star <size> <min> <max> <rounds> <num_queries>
 ```
 
 where 'size' stands for the number of points, 'rounds' is the number of rounds, 'num_queries' is the number of queries, min/max represents the min/max value of coordinates, d=0 means random query windows, d=1 means to use 'window'/2 as the average query window size (for the  y-coordinates), 'query_type' is 0 for query-all, and 1 for query-sum. 
