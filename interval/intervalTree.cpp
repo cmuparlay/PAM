@@ -65,7 +65,7 @@ long str_to_long(char* str) {
 
 int main(int argc, char** argv) {
   size_t n = 100000000;
-  if (arg == 1) {
+  if (argc == 1) {
 	  cout << "./intervalTree n q r" << endl;
 	  cout << "n: number of points" << endl;
 	  cout << "q: number of queries" << endl;
