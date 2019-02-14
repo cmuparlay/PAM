@@ -215,12 +215,12 @@ struct sequence_ops : Tree {
   static typename R::T semi_map_reduce(node* b, F& f, R reduce, size_t grain) {
     using T = typename R::T;
     if (Tree::size(b) >= grain) {
-      T r;
-      auto job = [&] () -> void {
+      T r, l;
+      auto left = [&] () -> void {
 	r = semi_map_reduce<R,F>(b->rc, f, reduce, grain);};
-      cilk_spawn job();
-      T l = semi_map_reduce<R,F>(b->lc, f, reduce, grain);
-      cilk_sync;
+      auto right = [&] () -> void {
+	l = semi_map_reduce<R,F>(b->lc, f, reduce, grain);};
+      par_do(left,right);
       f(l, Tree::get_entry(b));
       return reduce.add(l,r);
     } else {

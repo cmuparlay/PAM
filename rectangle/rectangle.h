@@ -4,8 +4,8 @@
 #include <vector>
 #include <parallel/algorithm>
 #include <pam.h>
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/random_shuffle.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/random_shuffle.h"
 using namespace std;
 
 timer init_tm, build_tm, total_tm, aug_tm, sort_tm, reserve_tm, outmost_tm, globle_tm, g_tm, extra_tm;
@@ -83,11 +83,16 @@ struct RectangleQuery {
 				return aug_sets(interval_tree(), interval_tree(v));
 		}
 		static inline aug_t combine(aug_t a, aug_t b) { 
+			//cout << "---" << endl;
+			//output_content(a.first); output_content(a.second);
+			//output_content(b.first); output_content(b.second);
 			interval_tree rml = interval_tree::map_difference(b.first, a.second);
 			interval_tree l = interval_tree::map_union(a.first, rml);
+			//output_content(rml); output_content(l);
 
 			interval_tree lmr = interval_tree::map_difference(a.second, b.first);
 			interval_tree r = interval_tree::map_union(b.second, lmr);
+			//output_content(lmr); output_content(r);
 			
 			return aug_sets(l, r, lmr, rml);
 		}
@@ -126,11 +131,11 @@ struct RectangleQuery {
 		reserve_tm.stop();
 		rec_entry *end_points = new rec_entry[2*n];
 		total_tm.start();
-		
-        cilk_for (size_t i = 0; i < n; ++i) {
+
+		parallel_for (0, n, [&] (size_t i) {
 			end_points[2*i] = make_pair(x1(recs[i]), recs[i]);
 			end_points[2*i+1] = make_pair(x2(recs[i]), recs[i]);
-        }
+		  });
 	
         main_tree = rec_tree(end_points, end_points + (2*n));
 
@@ -152,9 +157,10 @@ struct RectangleQuery {
 				interval_tree tt = interval_tree::upTo(t, yrec);
 				tt = interval_tree::aug_filter(tt, f);
 				size_t s = tt.size();
+				//cout << "t = " << t.size() << ", tt = " << s << endl;
 				total+=s;
-				interval_tree::keys(tt,out);
-				out+=s;
+				//interval_tree::keys(tt,out);
+				//out+=s;
 				r = r->rc;
 			}  else {
 				if (q.x < get_key(r)) {
@@ -162,8 +168,7 @@ struct RectangleQuery {
 					interval_tree tt = interval_tree::upTo(t, yrec);
 					tt = interval_tree::aug_filter(tt, f);
 					size_t s = tt.size();
-					interval_tree::keys(tt,out);
-					out+=s;
+					//cout << "t = " << t.size() << ", tt = " << s << endl;
 					total+=s;
 					r = r->lc;
 				} else break;

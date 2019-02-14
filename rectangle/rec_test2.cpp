@@ -8,10 +8,9 @@
 #include <cstdlib>
 #include <iomanip>
 
-#include <cilk/cilk_api.h>
 #include "rectangle2.h"
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/sequence_ops.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/sequence_ops.h"
 
 using namespace std;
 
@@ -64,7 +63,7 @@ vector<rec_type> generate_recs(size_t n, int a, int b) {
 		swap(p2[i], p2[i+j]);
 	}
 	vector<rec_type> ret(n);
-	cilk_for (int i = 0; i < n; i++) {
+	parallel_for (0, n, [&] (size_t i) {
 		if (p1[i*2+1]>p1[i*2+2]) swap(p1[i*2+1], p1[i*2+2]);
 		if (p2[i*2+1]>p2[i*2+2]) swap(p2[i*2+1], p2[i*2+2]);
 		ret[i].first.first = p1[i*2+1];
@@ -77,7 +76,7 @@ vector<rec_type> generate_recs(size_t n, int a, int b) {
 			ret[i].second.first = p1[i*2+1]+deltax;
 			ret[i].second.second = p2[i*2+1]+deltay;
 		}
-	}
+	  });
 	using pp = pair<int, int>;
 	//pp* x = pbbs::new_array<pp>(n*2);
 	//pp* y = pbbs::new_array<pp>(n*2);
@@ -85,12 +84,12 @@ vector<rec_type> generate_recs(size_t n, int a, int b) {
 	sequence<pp> y(n*2);
 	bool dup = true;
 	while (dup) {
-		cilk_for(int i = 0; i < n; i++) {
+	  	parallel_for (0, n, [&] (size_t i) {
 			x[i*2] = make_pair(x1(ret[i]), i);
 			x[i*2+1] = make_pair(x2(ret[i]), -i);
 			y[i*2] = make_pair(y1(ret[i]), i);
 			y[i*2+1] = make_pair(y2(ret[i]), -i);
-		}
+		  });
 		auto less = [&](pp a, pp b) {return a.first<b.first;};
 		x = pbbs::sample_sort(x, less);
 		y = pbbs::sample_sort(y, less);
@@ -121,6 +120,7 @@ vector<rec_type> generate_recs(size_t n, int a, int b) {
 				}
 			}
 		}
+		if (dup) cout << "dup!" << endl;
 	}
 	
 	for (size_t i = 0; i < n; ++i) {
@@ -134,12 +134,12 @@ vector<rec_type> generate_recs(size_t n, int a, int b) {
 
 vector<query_type> generate_queries(size_t q, int a, int b) {
     vector<query_type> ret(q);
-    cilk_for (int i = 0; i < q; ++i) {
+    parallel_for (0, q, [&] (size_t i) {
         ret[i].x = random_hash('q'*'x', i, 0, max_x);
 		if (ret[i].x%2 == 0) ret[i].x++;
 		ret[i].y = random_hash('y'+1, i, 0, max_y);
 		if (ret[i].y%2 == 0) ret[i].y++;
-    }
+      });
     return ret;
 }
 
@@ -149,13 +149,14 @@ void reset_timers() {
 	init_tm.reset(); sort_tm.reset(); build_tm.reset(); total_tm.reset(); 
 }
 
-void run_sum(vector<rec_type>& recs,
+void run_all(vector<rec_type>& recs,
   size_t iteration, int min_val, int max_val, int query_num) {
   std::string benchmark_name = "Query-All";
   reset_timers();
 
-  const size_t threads = __cilkrts_get_nworkers();
+  const size_t threads = num_workers();
   const size_t num_points = recs.size();
+  cout << rsv << endl;
   RectangleQuery r(recs);
   r.print_stats();
   //r.print_root();
@@ -168,10 +169,11 @@ void run_sum(vector<rec_type>& recs,
   timer t_query_total;
   t_query_total.start();
 
-  cilk_for (int i = 0; i < query_num; i++) {
+  parallel_for (0, query_num, [&] (size_t i) {
+    //sequence<rec_type> out(rsv);
 	int x = r.query_sum(queries[i]);
     counts[i] = x;
-  }
+    });
   t_query_total.stop();
 
   size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
@@ -181,7 +183,7 @@ void run_sum(vector<rec_type>& recs,
        << "\tname=" << benchmark_name
        << "\tn=" << num_points
        << "\tq=" << query_num
-       << "\tp=" << __cilkrts_get_nworkers()
+       << "\tp=" << num_workers()
        << "\tmin-val=" << min_val
        << "\tmax-val=" << max_val
        << "\twin-mean=" << win
@@ -202,29 +204,34 @@ void run_sum(vector<rec_type>& recs,
 
 int main(int argc, char** argv) {
 
-    if (argc != 4) {
-        cout << argv[0] << " <n> <rounds> <num_queries>"<< std::endl;
+    if (argc != 9) {
+        cout << "Invalid number of command line arguments" << std::endl;
         exit(1);
     }
 	srand(2017);
 
     size_t n = str_to_int(argv[1]);
-    int min_val  = 0;
-    int max_val  = 1000000000;
-	dist = 0;
-	win = 0;
-	size_t query_num  = str_to_int(argv[2]);
+    int min_val  = str_to_int(argv[2]);
+    int max_val  = str_to_int(argv[3]);
+	dist = str_to_int(argv[6]);
+	win = str_to_int(argv[7]);
+	size_t query_num  = str_to_int(argv[5]);
     //int type = str_to_int(argv[8]);
+	rsv = str_to_int(argv[8]);
 
-    size_t iterations = str_to_int(argv[3]);
+    size_t iterations = str_to_int(argv[4]);
 	
 	//int query_num  = str_to_int(argv[5]);
 	//int query_num = 1000;
 	
 	vector<rec_type> recs = generate_recs(n, min_val, max_val);
+	/*
+	for (int i = 0; i < n; i++) {
+		print_out(recs[i]); cout << endl;
+	}*/
 	
     for (size_t i = 0; i < iterations; ++i) {	
-		run_sum(recs, i, min_val, max_val, query_num);
+		run_all(recs, i, min_val, max_val, query_num);
     }
 
     return 0;

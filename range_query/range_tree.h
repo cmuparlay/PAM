@@ -4,7 +4,7 @@
 #include <vector>
 #include <parallel/algorithm>
 #include "pam.h"
-#include "pbbs-include/get_time.h"
+#include "pbbslib/get_time.h"
 
 using namespace std;
 
@@ -82,9 +82,9 @@ struct RangeQuery {
 		
     total_tm.start();
 	
-    cilk_for (size_t i = 0; i < n; ++i) {
+    parallel_for (0, n, [&] (size_t i) {
       pointsEle[i] = make_pair(make_pair(points[i].x, points[i].y), points[i].w);
-    }
+      });
     range_tree = outer_map(pointsEle, pointsEle + n);
 
     delete[] pointsEle;

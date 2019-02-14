@@ -1,8 +1,12 @@
 #include "pam.h"
+#include <stdio.h>
+#include <vector>
+#include <cstdio>
 #include <iostream>
 #include <algorithm>
-#include "pbbs-include/random.h"
-#include "pbbs-include/get_time.h"
+#include "pbbslib/random.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/parse_command_line.h"
 
 using namespace std;
 
@@ -16,12 +20,12 @@ struct interval_map {
   struct entry {
     using key_t = point;
     using val_t = point;
-    using aug_t = interval;
+    using aug_t = point;
     static inline bool comp(key_t a, key_t b) { return a < b;}
-    static aug_t get_empty() { return interval(0,0);}
-    static aug_t from_entry(key_t k, val_t v) { return interval(k,v);}
+    static aug_t get_empty() { return 0;}
+    static aug_t from_entry(key_t k, val_t v) { return v;}
     static aug_t combine(aug_t a, aug_t b) {
-      return (a.second > b.second) ? a : b;}
+      return (a>b) ? a : b;}
   };
 
   using amap = aug_map<entry>;
@@ -31,7 +35,7 @@ struct interval_map {
     amap::reserve(n); 
   }
 
-  void finish() {
+  static void finish() {
     amap::finish();
   }
 
@@ -39,68 +43,50 @@ struct interval_map {
     m = amap(A,A+n); }
 
   bool stab(point p) {
-    return (m.aug_left(p).second > p);}
+    return (m.aug_left(p) > p);}
 
   void insert(interval i) {m.insert(i);}
 
-  vector<interval> report_all(point p) {
-    vector<interval> vec;
-    amap a = m;
-    interval I = a.aug_left(p);
-    while (I.second > p) {
-      vec.push_back(I);
-      a = amap::remove(move(a),I.first); 
-      I = a.aug_left(p); }
-    return vec; }
+  interval* report_all(point p) {
+    amap a = amap::upTo(m, p);
+    amap b = amap::aug_filter(a, [&](point a) {return a >= p;});
+	interval* out = new interval[b.size()];
+	amap::entries(b, out);
+    return out; 
+  }
 
-  void remove_small(point l) {
-    auto f = [&] (interval I) {
-      return (I.second - I.first >= l);};
-    m = amap::filter(move(m),f); }
 };
 
 long str_to_long(char* str) {
   return strtol(str, NULL, 10);
 }
 
-int main(int argc, char** argv) {
-  size_t n = 100000000;
-  if (arg == 1) {
-	  cout << "./intervalTree n q r" << endl;
-	  cout << "n: number of points" << endl;
-	  cout << "q: number of queries" << endl;
-	  cout << "r: number of rounds" << endl;
-  }
-  if (argc > 1) n = str_to_long(argv[1]);
-  size_t q_num = n;
-  if (argc > 2) q_num = str_to_long(argv[2]);
-  size_t rounds = 5;
-  if (argc > 3) rounds = str_to_long(argv[3]);
 
+void test_all(size_t n, size_t q_num, size_t rounds) {
   par *v = pbbs::new_array<par>(n);
   par *vv = pbbs::new_array<par>(n);
   size_t max_size = (((size_t) 1) << 31)-1;
 
   pbbs::random r = pbbs::default_random;
-  parallel_for (size_t i = 0; i < n; i++) {
-    point start = r.ith_rand(2*i)%(max_size/2);
-    point end = start + r.ith_rand(2*i+1)%(max_size-start);
-    v[i] = make_pair(start, end);
-  }
+  parallel_for(0, n, [&] (size_t i) {
+      point start = r.ith_rand(2*i)%(max_size/2);
+      point end = start + r.ith_rand(2*i+1)%(max_size-start);
+      v[i] = make_pair(start, end);
+    });
+  
 
   bool* result = new bool[q_num];
   int* queries = new point[q_num];
-  parallel_for (size_t i = 0; i < q_num; i++)
-    queries[i] = r.ith_rand(6*i)%max_size;
+  parallel_for(0, q_num, [&] (size_t i) {
+      queries[i] = r.ith_rand(6*i)%max_size;
+    });
   
   double* build_tm = new double[rounds];
   double* query_tm = new double[rounds];
-  const size_t threads = __cilkrts_get_nworkers();
+  const size_t threads = num_workers();
   for (size_t i=0; i < rounds+1; i++) {
-    parallel_for (size_t i = 0; i < n; i++) {
-      vv[i] = v[i];
-    }
-    interval_map xtree(n);
+    parallel_for (0, n, [&] (size_t i) {vv[i] = v[i];});
+    //interval_map xtree(n);
     timer t;
     t.start();
     interval_map itree(vv,n);
@@ -109,13 +95,17 @@ int main(int argc, char** argv) {
 
     timer tq;
     tq.start();
-    parallel_for (size_t i = 0; i < q_num; i++) 
-      result[i] = itree.stab(queries[i]);
+    parallel_for(0, q_num, [&] (size_t i) {
+		result[i] = itree.stab(queries[i]);
+		//result[i] = itree.report_all(queries[i]);
+	});
     double tm2 = tq.stop();
     if (i>0) query_tm[i-1] = tm2;
 
-    itree.finish();
+    //itree.finish();
   }
+  
+  interval_map::finish();
   
   auto less = [] (double a, double b) {return a < b;};
   pbbs::sample_sort(build_tm,rounds,less);
@@ -134,6 +124,17 @@ int main(int argc, char** argv) {
        << ", n = " << n
        << ", q = " << q_num
        << ", time = " << query_tm[rounds/2] << endl;
+     
+}
 
+int main(int argc, char** argv) {
+  commandLine P(argc, argv,
+		"./intervalTree [-n size] [-q num_queries] [-r rounds]");
+  size_t n = P.getOptionLongValue("-n", 100000000);
+  size_t q_num = P.getOptionLongValue("-q", 10000000);
+  size_t rounds = P.getOptionIntValue("-r", 5);
+  test_all(n, q_num, rounds);
+//  cout << "here" << endl;
+  
   return 0;
 }

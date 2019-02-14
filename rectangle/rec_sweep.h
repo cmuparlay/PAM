@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include "pam.h"
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/sample_sort.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/sample_sort.h"
 #include "../common/sweep.h"
 using namespace std;
 
@@ -77,12 +77,12 @@ struct RectangleQuery {
 	
     ev = pbbs::new_array<e_type>(2*n);
 
-    cilk_for (size_t i = 0; i < n; ++i) {
+    parallel_for (0, n, [&] (size_t i) {
       ev[2*i].first = x1(recs[i]);
       ev[2*i].second = recs[i];
 	  ev[2*i+1].first = x2(recs[i]);
       ev[2*i+1].second = recs[i];
-    }
+      });
 		
     auto less = [] (e_type a, e_type b) {
       return a.first<b.first;};

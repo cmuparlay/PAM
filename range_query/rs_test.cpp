@@ -16,8 +16,8 @@
 #include <cstdlib>
 #include <iomanip>
 #include "range_sweep.h"
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/parse_command_line.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/parse_command_line.h"
 
 using namespace std;
 
@@ -49,11 +49,11 @@ int dist;
 vector<Point> generate_points(size_t n, coord a, coord b) {
   vector<Point> ret(n);
 
-  parallel_for (size_t i = 0; i < n; ++i) {
+  parallel_for(0, n, [&] (size_t i) {
     ret[i].x = random_hash('x', i, a, b);
     ret[i].y = random_hash('y', i, a, b);
     ret[i].w = 1; //random_hash('w', i, a, b);
-  }
+    });
 
   return ret;
 }
@@ -64,7 +64,7 @@ vector<Point> generate_points(size_t n, coord a, coord b) {
 // otherwise: the average size of query windows is win^2/4
 vector<tuple_type> generate_queries(size_t q, coord a, coord b) {
   vector<tuple_type> ret(q);
-  parallel_for (size_t i = 0; i < q; ++i) {
+  parallel_for (0, q, [&] (size_t i) {
     coord x1 = random_hash('q'*'x', i*2, a, b);
     coord y1 = random_hash('q'*'y', i*2, a, b);
   int dx = random_hash('d'*'x', i, 0, win);
@@ -82,7 +82,7 @@ vector<tuple_type> generate_queries(size_t q, coord a, coord b) {
       coord t = y1; y1 = y2; y2 = t;
     }
     ret[i] = tuple_type(x1, y1, x2, y2);
-  }
+    });
 
   return ret;
 }
@@ -91,9 +91,9 @@ void reset_timers() {
      reserve_tm.reset();
      deconst_tm.reset();
      sort_tm.reset();
-     sweep_1_tm.reset();
-     sweep_2_tm.reset();
-     sweep_3_tm.reset();
+     //sweep_1_tm.reset();
+     //sweep_2_tm.reset();
+     //sweep_3_tm.reset();
      run_tm.reset();
 }
 
@@ -112,11 +112,11 @@ void run(vector<Point>& points, size_t iteration,
   
   timer t_query;
   t_query.start();
-  parallel_for (size_t i = 0; i < query_num; i++) {
+  parallel_for (0, query_num, [&] (size_t i) {
     counts[i] = r->query(std::get<0>(queries[i]), std::get<1>(queries[i]), 
 	     std::get<2>(queries[i]), std::get<3>(queries[i]));
 		 //cout << counts[i] << endl;
-  }
+    });
   double tm_query = t_query.stop();
   size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
 
@@ -131,7 +131,7 @@ void run(vector<Point>& points, size_t iteration,
        << "\tname=" << benchmark_name
        << "\tn=" << points.size()
        << "\tq=" << query_num
-       << "\tp=" << __cilkrts_get_nworkers()
+       << "\tp=" << num_workers()
        << "\tmin-val=" << min_val
        << "\tmax-val=" << max_val
        << "\twin-mean=" << win
@@ -145,6 +145,14 @@ void run(vector<Point>& points, size_t iteration,
      reset_timers();
 }
 
+void test_loop(size_t n, int min_val, int max_val,
+	       size_t iterations, size_t query_num) {
+  for (size_t i = 0; i < iterations; ++i) {
+    vector<Point> points = generate_points(n, min_val, max_val);
+    run(points, i, min_val, max_val, query_num);
+    reset_timers();
+  }
+}
 
 int main(int argc, char** argv) {
 
@@ -169,11 +177,7 @@ int main(int argc, char** argv) {
   win = P.getOptionIntValue("-w", 1000000);
   size_t query_num = P.getOptionLongValue("-q", 1000);
 
-  for (size_t i = 0; i < iterations; ++i) {
-    vector<Point> points = generate_points(n, min_val, max_val);
-    run(points, i, min_val, max_val, query_num);
-    reset_timers();
-  }
-
+  test_loop(n, min_val, max_val, iterations, query_num);
+  
   return 0;
 }

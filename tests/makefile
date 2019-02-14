@@ -5,18 +5,20 @@ CFLAGS = -mcx16 -O2 -I../c++ -fcilkplus -ldl -std=c++11 -march=native
 else
 CC = g++
 # works with g++ (GCC) 5.4.1
-CFLAGS = -O2 -I../c++ -mcx16 -march=native -fcilkplus -std=c++11
+#CFLAGS = -O2 -I../c++ -mcx16 -march=native -DCILK -fcilkplus -std=c++11 -Wall
+CFLAGS = -O2 -I../c++ -mcx16 -march=native -DHOMEGROWN -fopenmp -std=c++11 -Wall
 endif
 
-all:	aug_sum aug_sumNA
+all:	testParallel testParallelNA unit_tests
 
-aug_sum:		aug_sum.cpp
-	$(CC) $(CFLAGS) -DNDEBUG aug_sum.cpp -o aug_sum
+testParallel:	testParallel.cpp
+	$(CC) $(CFLAGS) -DNDEBUG testParallel.cpp -o testParallel
 
-aug_sumNA:	aug_sum.cpp
-	$(CC) $(CFLAGS) -DNDEBUG -DNO_AUG aug_sum.cpp -o aug_sumNA
+testParallelNA:	testParallel.cpp
+	$(CC) $(CFLAGS) -DNDEBUG -DNO_AUG testParallel.cpp -o testParallelNA
 
-
+unit_tests:	unit_tests.cpp
+	$(CC) $(CFLAGS) unit_tests.cpp -o unit_tests
 
 clean:
-	rm -f aug_sum aug_sumNA
+	rm -f testParallel testParallelNA unit_tests

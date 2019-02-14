@@ -1,7 +1,6 @@
 #pragma once
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/sequence_ops.h"
-#include "pbbs-include/sample_sort.h"
+#include "pbbslib/sequence_ops.h"
+#include "pbbslib/sample_sort.h"
 
 template <class Entry>
 struct build {
@@ -68,10 +67,11 @@ struct build {
     Vin* vals = pbbs::new_array_no_init<Vin>(n);
     is_start[0] = 1;
     vals[0] = A[0].second;
-    parallel_for(size_t i = 1; i < n; i++) {
+    auto f = [&] (size_t i) {
       is_start[i] = Entry::comp(A[i-1].first, A[i].first);
       new (static_cast<void*>(vals+i)) Vin(A[i].second);
-    }
+    };
+    parallel_for(1, n, f);
 
     sequence<node_size_t> I = 
       pbbs::pack_index<node_size_t>(sequence<bool>(is_start,n));
@@ -79,11 +79,12 @@ struct build {
 
     // combines over each block of equal keys using function reduce
     ET* B = pbbs::new_array<ET>(I.size());
-    parallel_for(size_t i = 0; i < I.size(); i++) {
+    auto g = [&] (size_t i) {
       size_t start = I[i];
       size_t end = (i==I.size()-1) ? n : I[i+1];
       B[i] = ET(A[start].first, reduce(vals+start,vals+end));
-    }
+    };
+    parallel_for(0, I.size(), g);
 
     pbbs::delete_array(vals, n);
     return std::pair<ET*,size_t>(B,I.size());

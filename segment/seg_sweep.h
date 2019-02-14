@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include "pam.h"
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/sample_sort.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/sample_sort.h"
 #include "../common/sweep.h"
 using namespace std;
 
@@ -14,174 +14,142 @@ void reset_timers() {
   reserve_tm.reset();
 }
 
-using data_type = int;
+using coord_t = int;
+using weight_t = int;
 
-typedef pair<data_type, data_type> point_type;
-typedef pair<point_type, point_type> seg_type;
-struct query_type {
-	int x, y1, y2;
+struct segment_t {coord_t x1, x2, y; weight_t w;};
+struct query_t { coord_t x, y1, y2;};
+
+struct mkey_t {
+  coord_t y, x1, x2;
+  mkey_t() {}
+  mkey_t(coord_t y, coord_t x1, coord_t x2) : y(y), x1(x1), x2(x2) {}
+  const bool operator < (const mkey_t &b) const {
+    return y < b.y || (y == b.y && x1 < b.x1);}
 };
-
-template<typename T>
-void shuffle(vector<T> v) {
-    srand(unsigned(time(NULL)));
-	int n = v.size();
-    for (size_t i = 0; i < n; ++i) {
-        size_t j = rand() % (n-i);
-        swap(v[i], v[i+j]);
-    }
-}
-
-inline data_type x1(seg_type& s) {
-	return s.first.first;
-}
-
-inline data_type y1(seg_type& s) {
-	return s.first.second;
-}
-
-inline data_type x2(seg_type& s) {
-	return s.second.first;
-}
-
-inline data_type y2(seg_type& s) {
-	return s.second.second;
-}
-
-double value_at(seg_type& s, int x) {
-	if (x2(s) == x1(s)) return double(y1(s));
-	double r1 = (double)((x-x1(s))+0.0)/(x2(s)-x1(s)+0.0)*(y1(s)+0.0);
-	double r2 = ((x2(s)-x)+0.0)/(x2(s)-x1(s)+0.0)*(y2(s)+0.0);
-	return r1+r2;
-}
-
-bool in_seg_x_range(seg_type& s, int p) {
-	if ((x1(s) <= p) && (p <= x2(s))) return true;
-	return false;
-}
-
-bool cross(seg_type& s, query_type q) {
-	double cp;
-	if (in_seg_x_range(s, q.x)) cp = value_at(s, q.x); else return false;
-	if (q.y1 <= cp && cp <= q.y2) return true; else return false;
-}
 
 struct SegmentQuery {
 
-	struct inner_entry {
-		using key_t = seg_type; 
-		static bool comp(key_t a, key_t b) { 
-			if (x1(a)<=x1(b)) return (value_at(a, x1(b)) < y1(b));
-			return (y1(a) < value_at(b, x1(a)));
-		}
-	};
-	using seg_set = pam_set<inner_entry>;
+  using entry_t = pair<mkey_t, weight_t>;
 
-	using e_type = pair<int, seg_type>;
-	
-  e_type* ev;
-  seg_set* xt;
+  struct map_t {
+    using key_t = mkey_t;
+    using val_t = weight_t;
+    static bool comp(key_t a, key_t b) { return a < b;}
+    using aug_t = weight_t;
+    static aug_t get_empty() {return 0;}
+    static aug_t from_entry(key_t k, val_t v) {return v;}
+    static aug_t combine(aug_t a, aug_t b) {return a + b;}
+  };
+
+  using seg_map = aug_map<map_t>;
+
+  segment_t* end_points;
+  seg_map* xt;
   size_t n;
   size_t n2;
+  coord_t c_min, c_max;
+	
+  void set_min_max(coord_t _c_min, coord_t _c_max) {
+    c_min = _c_min;
+    c_max = _c_max;
+  }
 
-  SegmentQuery(vector<seg_type>& segs) {
+  SegmentQuery(vector<segment_t>& segs) {
     n = segs.size();
     n2 = 2*n;
 		
     reserve_tm.start();
-    seg_set::reserve(63*n);
+    seg_map::reserve(63*n);
     reserve_tm.stop();
 
     total_tm.start();
-	
-    ev = pbbs::new_array<e_type>(2*n);
+   // init_tm.start();
+    end_points = pbbs::new_array<segment_t>(2*n);
 
-    cilk_for (size_t i = 0; i < n; ++i) {
-      ev[2*i].first = x1(segs[i]);
-      ev[2*i].second = segs[i];
-	  ev[2*i+1].first = x2(segs[i]);
-      ev[2*i+1].second = segs[i];
-    }
+    parallel_for (0, n, [&] (size_t i) {
+      segment_t s = segs[i];
+      end_points[2*i] = s;
+      std::swap(s.x1, s.x2);
+      end_points[2*i+1] = s;
+      });
+ //   init_tm.stop();
 		
-    auto less = [] (e_type a, e_type b) {
-      return a.first<b.first;};
+    auto less = [] (segment_t a, segment_t b) {
+      return (a.x1 < b.x1) || (a.x1 == b.x1 && a.y < b.y);};
 		
    // sort_tm.start();
-    pbbs::sample_sort(ev, 2*n, less);
+    pbbs::sample_sort(end_points, 2*n, less);
    // sort_tm.stop();
 
-    using partial_t = pair<seg_set, seg_set>;
+    using partial_t = pair<seg_map, seg_map>;
 
-    auto insert = [&] (seg_set m, e_type p) {
-      if (p.first == x1(p.second))
-	return seg_set::insert(m, p.second);
-      else return seg_set::remove(m, p.second);
+    auto insert = [&] (seg_map m, segment_t p) {
+      if (p.x1 < p.x2)
+	return seg_map::insert(m, make_pair(mkey_t(p.y, p.x1, p.x2), p.w));
+      else return seg_map::remove(m, mkey_t(p.y, p.x2, p.x1));
     };
 
-    auto build = [&] (e_type* s, e_type* e) {
+    auto build = [&] (segment_t* s, segment_t* e) {
       size_t n = e - s;
-      vector<seg_type> add;
-      vector<seg_type> remove;
+      vector<entry_t> add;
+      vector<entry_t> remove;
       for (int i = 0; i < n; i++) {
-		e_type p = s[i];
-		if (p.first == x1(p.second)) add.push_back(p.second);
-		else remove.push_back(p.second);
-	  }
-	  return make_pair(seg_set(add.data(), add.data() + add.size()),
-						seg_set(remove.data(), remove.data() + remove.size()));
+	segment_t p = s[i];
+	if (p.x1 < p.x2) add.push_back(make_pair(mkey_t(p.y, p.x1, p.x2), p.w));
+	else remove.push_back(make_pair(mkey_t(p.y, p.x2, p.x1), p.w));
+      }
+      return make_pair(seg_map(add.data(), add.data() + add.size()),
+		       seg_map(remove.data(), remove.data() + remove.size()));
     };
 
-    auto fold = [&] (seg_set m1, partial_t m2) {
-      return seg_set::map_difference(seg_set::map_union(m1, std::move(m2.first)),
+    auto fold = [&] (seg_map m1, partial_t m2) {
+      return seg_map::map_difference(seg_map::map_union(m1, std::move(m2.first)),
 				     std::move(m2.second));
     };
     
-    xt = sweep<partial_t>(ev, n2, seg_set(), insert, build, fold, num_blocks);
+    xt = sweep<partial_t>(end_points, n2, seg_map(), insert, build, fold, num_blocks);
 
     total_tm.stop();
   }
 	
-  size_t get_index(const query_type& q) {
+  size_t get_index(const query_t& q) {
     size_t l = 0, r = n2;
     size_t mid = (l+r)/2;
     while (l<r-1) {
-      if (ev[mid].first == q.x) break;
-      if (ev[mid].first < q.x) l = mid;
+      if (end_points[mid].x1 == q.x) break;
+      if (end_points[mid].x1 < q.x) l = mid;
       else r = mid;
       mid = (l+r)/2;
     }
     return mid;
   }
 	
-  sequence<seg_type> query_points(const query_type& q) {
-    seg_set sm = xt[get_index(q)];
-	point_type lp = make_pair(q.x, q.y1);
-	point_type rp = make_pair(q.x, q.y2);
-	seg_type qy1 = make_pair(lp, lp);
-	seg_type qy2 = make_pair(rp, rp);    
-	size_t m = sm.rank(qy2) - sm.rank(qy1);
-    sequence<seg_type> out(m);
-    seg_set::keys(seg_set::range(sm, qy1, qy2), out.as_array());
+  sequence<mkey_t> query_points(const query_t& q) {
+    seg_map sm = xt[get_index(q)];
+    mkey_t left(q.y1,0,0);
+    mkey_t right(q.y2,0,0);
+    if (q.y1 > q.y2) std::swap(left,right);
+    size_t m = sm.rank(right) - sm.rank(left);
+    sequence<mkey_t> out(m);
+    seg_map::keys(seg_map::range(sm, left, right), out.as_array());
     return out;
   }
 	
-  int query_sum(const query_type& q) {
-    seg_set sm = xt[get_index(q)];
-	point_type lp = make_pair(q.x, q.y1);
-	point_type rp = make_pair(q.x, q.y2);
-	seg_type qy1 = make_pair(lp, lp);
-	seg_type qy2 = make_pair(rp, rp);    
-	size_t m = sm.rank(qy2) - sm.rank(qy1);
-	return m;
+  weight_t query_sum(const query_t& q) {
+    int ind = get_index(q);
+    mkey_t left(q.y1,0,0);
+    mkey_t right(q.y2,0,0);
+    return xt[ind].aug_range(left, right);
   }
 
   void print_allocation_stats() {
     cout << "allocation stats:" ;
-    seg_set::GC::print_stats();
+    seg_map::GC::print_stats();
   }
   
   static void finish() {
-    seg_set::finish();
+    seg_map::finish();
   }
 
 

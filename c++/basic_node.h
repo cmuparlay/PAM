@@ -1,5 +1,5 @@
 #pragma once
-#include "pbbs-include/list_allocator.h"
+#include "pbbslib/list_allocator.h"
 
 using node_size_t = unsigned int;
 //using node_size_t = size_t;

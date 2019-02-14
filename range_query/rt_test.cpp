@@ -6,7 +6,7 @@
 	
 	Parallel Range, Segment and Rectangle Queries with Augmented Maps
 	Yihan Sun and Guy Blelloch
-	arXiv:1803.08621
+	ALENEX 2019
 */
 
 #include <algorithm>
@@ -17,11 +17,9 @@
 #include <cstdlib>
 #include <iomanip>
 
-#include <cilk/cilk_api.h>
 #include "range_tree.h"
-#include "pbbs-include/get_time.h"
-#include "pbbs-include/sample_sort.h"
-#include "pbbs-include/parse_command_line.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/parse_command_line.h"
 
 using namespace std;
 
@@ -60,11 +58,11 @@ int random_hash(int seed, int a, int rangeL, int rangeR) {
 // generate random input points. The coordinate are uniformly distributed in [a, b]
 vector<point_type> generate_points(size_t n, data_type a, data_type b, data_type offset = 0) {
   vector<point_type> ret(n);
-  cilk_for (size_t i = 0; i < n; ++i) {
+  parallel_for(0, n, [&] (size_t i) {
     ret[i].x = random_hash('x'+offset, i, a, b);
     ret[i].y = random_hash('y'+offset, i, a, b);
     ret[i].w = 1; //random_hash('w', i, a, b);
-  }
+    });
 
   return ret;
 }
@@ -74,7 +72,8 @@ vector<point_type> generate_points(size_t n, data_type a, data_type b, data_type
 // otherwise: the average size of query windows is win^2/4
 vector<Query_data> generate_queries(size_t q, data_type a, data_type b) {
   vector<Query_data> ret(q);
-  cilk_for (size_t i = 0; i < q; ++i) {
+
+  parallel_for (0, q, [&] (size_t i) {
     data_type x1 = random_hash('q'*'x', i*2, a, b);
     data_type y1 = random_hash('q'*'y', i*2, a, b);
     int dx = random_hash('d'*'x', i, 0, win);
@@ -93,7 +92,7 @@ vector<Query_data> generate_queries(size_t q, data_type a, data_type b) {
     }
     ret[i].x1 = x1; ret[i].x2 = x2;
     ret[i].y1 = y1; ret[i].y2 = y2;
-  }
+    });
 
   return ret;
 }
@@ -110,16 +109,16 @@ void run_all(vector<point_type>& points, size_t iteration,
 
   vector<Query_data> queries = generate_queries(query_num, min_val, max_val);
 
-  r->print_status();
+  //r->print_status();
   
   size_t counts[query_num];
   timer t_query_total;
   t_query_total.start();
-  cilk_for (size_t i = 0; i < query_num; i++) {
+  parallel_for(0, query_num, [&] (size_t i) {
     sequence<pair<int,int>> out = r->query_range(queries[i].x1, queries[i].y1,
 					       queries[i].x2, queries[i].y2);
     counts[i] = out.size();
-  }
+    });
 
   t_query_total.stop();
   size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
@@ -129,7 +128,7 @@ void run_all(vector<point_type>& points, size_t iteration,
        << "\tname=" << benchmark_name
        << "\tn=" << points.size()
        << "\tq=" << query_num
-       << "\tp=" << __cilkrts_get_nworkers()
+       << "\tp=" << num_workers()
        << "\tmin-val=" << min_val
        << "\tmax-val=" << max_val
        << "\twin-mean=" << win
@@ -149,17 +148,17 @@ void run_all(vector<point_type>& points, size_t iteration,
 void run_sum(vector<point_type>& points, size_t iteration, data_type min_val, data_type max_val, size_t query_num) {
   string benchmark_name = "Query-Sum";
   RangeQuery<data_type, data_type> *r = new RangeQuery<data_type, data_type>(points);
-  r->print_status();
+  //r->print_status();
   vector<Query_data> queries = generate_queries(query_num, min_val, max_val);
 	
   size_t counts[query_num];
 
   timer t_query_total;
   t_query_total.start();
-  cilk_for (size_t i = 0; i < query_num; i++) {
+  parallel_for (0, query_num, [&] (size_t i) {
     counts[i] = r->query_sum(queries[i].x1, queries[i].y1,
 			     queries[i].x2, queries[i].y2);
-  }
+    });
 
   t_query_total.stop();
   size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
@@ -169,7 +168,7 @@ void run_sum(vector<point_type>& points, size_t iteration, data_type min_val, da
        << "\tname=" << benchmark_name
        << "\tn=" << points.size()
        << "\tq=" << query_num
-       << "\tp=" << __cilkrts_get_nworkers()
+       << "\tp=" << num_workers()
        << "\tmin-val=" << min_val
        << "\tmax-val=" << max_val
        << "\twin-mean=" << win
@@ -191,7 +190,7 @@ void run_insert(vector<point_type>& points, size_t iteration, data_type min_val,
   vector<point_type> new_points = generate_points(query_num, min_val, insert_range, 'i'+'n'+'s'+'e'+'r'+'t');
   for (size_t i = 0; i < query_num; i++) new_points[i].y = random_hash(2991,i,0,1000000000)+new_points[i].y;
   cout << "constructed" << endl;
-  r->print_status();
+  //r->print_status();
   timer t_query_total;
   t_query_total.start();
   for (size_t i = 0; i < query_num; i++) {
@@ -199,13 +198,13 @@ void run_insert(vector<point_type>& points, size_t iteration, data_type min_val,
   }
   cout << "query end" << endl;
   t_query_total.stop();
-  r->print_status();
+  // r->print_status();
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "RageTree"
        << "\tname=" << benchmark_name
        << "\tn=" << points.size()
        << "\tq=" << query_num
-       << "\tp=" << __cilkrts_get_nworkers()
+       << "\tp=" << num_workers()
        << "\tmin-val=" << min_val
        << "\tmax-val=" << max_val
        << "\twin-mean=" << win
@@ -226,7 +225,7 @@ void run_insert_lazy(vector<point_type>& points, size_t iteration, data_type min
   vector<point_type> new_points = generate_points(query_num, min_val, insert_range, 'i'+'n'+'s'+'e'+'r'+'t');
   for (size_t i = 0; i < query_num; i++) new_points[i].y = random_hash(2991,i,0,1000000000)+new_points[i].y;
   //auto less = [] (point_type a, point_type b) {return a.x < b.x;};
-  r->print_status();
+  //r->print_status();
   timer t_query_total;
   t_query_total.start();
   for (size_t i = 0; i < query_num; i++) {
@@ -235,13 +234,13 @@ void run_insert_lazy(vector<point_type>& points, size_t iteration, data_type min
   cout << endl;
   cout << "query end" << endl;
   t_query_total.stop();
-  r->print_status();
+  //r->print_status();
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "RageTree"
        << "\tname=" << benchmark_name
        << "\tn=" << points.size()
        << "\tq=" << query_num
-       << "\tp=" << __cilkrts_get_nworkers()
+       << "\tp=" << num_workers()
        << "\tmin-val=" << min_val
        << "\tmax-val=" << max_val
        << "\twin-mean=" << win
@@ -254,6 +253,24 @@ void run_insert_lazy(vector<point_type>& points, size_t iteration, data_type min
   reset_timers();
   delete r;
 }
+
+void test_loop(size_t n, int min_val, int max_val,
+	       size_t iterations, size_t query_num, int type) {
+  for (size_t i = 0; i < iterations; ++i) {
+    vector<point_type> points = generate_points(n, min_val, max_val);
+    if (type == 0) run_all(points, i, min_val, max_val, query_num);
+    else {
+      if (type == 1) run_sum(points, i, min_val, max_val, query_num);
+      else {
+		if (type == 2) run_insert(points, i, min_val, max_val, query_num);
+		else {
+		  run_insert_lazy(points, i, min_val, max_val, query_num);
+		}
+      }
+    }
+  }
+}
+
 
 int main(int argc, char** argv) {
 
@@ -289,20 +306,8 @@ int main(int argc, char** argv) {
 
   srand(2017);
 
-  for (size_t i = 0; i < iterations; ++i) {
-    vector<point_type> points = generate_points(n, min_val, max_val);
-    if (type == 0) run_all(points, i, min_val, max_val, query_num);
-    else {
-      if (type == 1) run_sum(points, i, min_val, max_val, query_num);
-      else {
-		if (type == 2) run_insert(points, i, min_val, max_val, query_num);
-		else {
-		  run_insert_lazy(points, i, min_val, max_val, query_num);
-		}
-      }
-    }
-  }
-
+  test_loop(n, min_val, max_val, iterations, query_num, type);
+  
   return 0;
 }
 

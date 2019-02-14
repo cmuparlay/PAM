@@ -1,6 +1,4 @@
 #pragma once
-#include "pbbs-include/sequence_ops.h"
-#include "pbbs-include/sample_sort.h"
 
 // *******************************************
 //   Utils
@@ -17,18 +15,17 @@ namespace utils {
   // assumes work proportional to m log (n/m + 1)
   static bool do_parallel(size_t n, size_t m) {
     if (m > n) std::swap(n,m);
-    return (m > 8 && (m * pbbs::log2_up(n/m + 1)) > 100); 
+    return (m > 8 && (m * pbbs::log2_up(n/m + 1)) > node_limit); 
   }
 
   // fork-join parallel call, returning a pair of values
   template <class RT, class Lf, class Rf>
   static std::pair<RT,RT> fork(bool do_parallel, Lf left, Rf right) {
-    if (do_parallel) {
-      RT r;
+    if (do_parallel) { //do_parallel) {
+      RT r, l;
       auto do_right = [&] () {r = right();};
-      cilk_spawn do_right();
-      RT l = left();
-      cilk_sync;
+      auto do_left = [&] () {l = left();};
+      par_do(do_left, do_right);
       return std::pair<RT,RT>(l,r);
     } else {
       RT l = left(); 
@@ -40,7 +37,7 @@ namespace utils {
   // fork-join parallel call, returning nothing
   template <class Lf, class Rf>
   static void fork_no_result(bool do_parallel, Lf left, Rf right) {
-    if (do_parallel) {cilk_spawn right(); left(); cilk_sync; }
+    if (do_parallel) par_do(left, right);
     else {left(); right();}
   }
 

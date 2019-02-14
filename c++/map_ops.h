@@ -1,7 +1,7 @@
 #pragma once
 #include "utils.h"
 #include "sequence_ops.h"
-#include "pbbs-include/binary_search.h"
+#include "pbbslib/binary_search.h"
 
 // *******************************************
 //   MAPS and SETS
