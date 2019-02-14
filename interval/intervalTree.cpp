@@ -61,7 +61,6 @@ long str_to_long(char* str) {
   return strtol(str, NULL, 10);
 }
 
-
 void test_all(size_t n, size_t q_num, size_t rounds) {
   par *v = pbbs::new_array<par>(n);
   par *vv = pbbs::new_array<par>(n);
