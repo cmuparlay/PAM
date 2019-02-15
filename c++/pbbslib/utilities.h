@@ -64,6 +64,9 @@ struct maybe {
 	}
 };
 
+#if defined(__APPLE__)
+void* aligned_alloc(size_t a, size_t n) {return malloc(n);}
+#else
 #include <malloc.h>
 struct __mallopt {
   __mallopt() {
@@ -73,6 +76,7 @@ struct __mallopt {
 };
 
 __mallopt __mallopt_var;
+#endif
 
 namespace pbbs {
 
@@ -122,7 +126,7 @@ namespace pbbs {
 
   // a slightly cheaper, but possibly not as good version
   // based on splitmix64
-  static uint64_t hash64_2(uint64_t x) {
+  inline uint64_t hash64_2(uint64_t x) {
     x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
     x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
     x = x ^ (x >> 31);

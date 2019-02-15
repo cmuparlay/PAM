@@ -2,8 +2,10 @@
 #include "concurrent_stack.h"
 #include "utilities.h"
 #include <atomic>
+#include <cstdlib>
 #include "memory_size.h"
 
+#
 struct mem_pool {
   concurrent_stack<void*>* buckets;
   static constexpr size_t header_size = 64;

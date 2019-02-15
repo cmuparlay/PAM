@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pam.h"
+#include <vector>
 
 auto add = [] (float a, float b) -> float {
     return a + b;};
@@ -81,9 +82,9 @@ struct inv_index {
   static post_list And_Not(post_list a, post_list b) {
     return post_list::map_difference(a,b);}
 
-  vector<post_elt> top_k(post_list a, int k) {
+  std::vector<post_elt> top_k(post_list a, int k) {
     int l = min<int>(k,a.size());
-    vector<post_elt> vec(l);
+    std::vector<post_elt> vec(l);
     post_list b = a;
     for (int i=0; i < l; i++) {
       weight m = b.aug_val();

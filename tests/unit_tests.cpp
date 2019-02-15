@@ -372,18 +372,18 @@ void test_index() {
   check(pie.size() == 3, "size check for pie");
   check(tasty.size() == 1, "size check for tasty");
     
-  post_list res1 = std::move(inv_index::And(apple, pie));
+  post_list res1 = inv_index::And(apple, pie);
   check(res1.size() == 2, "size check for And query result");
   check(res1.contains(0), "check if query result has document id 0");
   check(res1.contains(2), "check if query result has document id 2");
 
-  post_list res2 = std::move(inv_index::Or(tasty, apple));
+  post_list res2 = inv_index::Or(tasty, apple);
   check(res2.size() == 3, "size check for or query result");
   check(res2.contains(0), "check if or query result has document id 0");
   check(res2.contains(1), "check if or query result has document id 1");
   check(res2.contains(2), "check if or query result has document id 2");
 
-  post_list res3 = std::move(inv_index::And_Not(pie, tasty));
+  post_list res3 = inv_index::And_Not(pie, tasty);
   check(res3.size() == 2, "size check for or query result");
     
   pbbs::free_array(KV);

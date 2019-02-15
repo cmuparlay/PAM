@@ -216,7 +216,7 @@ void list_allocator<T>::init() {
 
     // Hack to account for possible allignment expansion
     // i.e. sizeof(T) might not work -- better way?
-    block_p x;
+    block_p x = nullptr;
     _block_size = (char*) (x+1) - (char*) x; 
 
     // reserve initial blocks in the global pool
@@ -233,7 +233,7 @@ void list_allocator<T>::finish() {
     delete[] local_lists;
 
     maybe<block_p> x;
-    while (x = pool_roots.pop()) std::free(*x);
+    while ((x = pool_roots.pop())) std::free(*x);
     pool_roots.clear();
     global_stack.clear();
 
