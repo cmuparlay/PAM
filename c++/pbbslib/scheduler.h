@@ -149,7 +149,12 @@ public:
 
   scheduler() {
     num_threads = num_workers();
-    num_deques = 2*num_workers();
+    char* threads = getenv("NUM_THREADS");
+    if (threads != nullptr) {
+      int thcnt = atoi(threads);
+      if (thcnt > 0) num_threads = thcnt;
+    }
+    num_deques = 2*num_threads;
     deques = new Deque<Job>[num_deques];
     attempts = new attempt[num_deques];
     finished_flag = 0;
