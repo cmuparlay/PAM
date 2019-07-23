@@ -6,6 +6,21 @@ PAM also implements another implementation of augmented maps, which is the prefi
 
 This repository also contains examples of using PAM for a variety of applications, including range sum, 1D stabbing queries, 2D range queries, 2D segment queries, 2D rectangle queries, inverted index searching, implementing an HTAP database benchmark combining TPC-H  queries and TPC-C transactions [5], version maintenance in single-writer transactional memory, etc.
 
+PAM uses the PBBS library (https://github.com/cmuparlay/pbbslib) as subroutines for parallel operations, including sorting, scan, the scheduler, etc. To access the PAM libaray, you can use:
+
+```
+git clone git@github.com:cmuparlay/PAM.git
+cd PAM/c++/pbbslib
+git submodule init
+git submodule update
+```
+
+Or more simply, use:
+
+```
+git clone --recurse-submodules git@github.com:cmuparlay/PAM.git 
+```
+
 ## Interface:
 
 To define an augmented map using PAM, user need to specify the parameters including type names and (static) functions in the entry structure ``entry''.
@@ -86,19 +101,19 @@ In directory rectangle/. More details about the algorithm and results can be fou
 ### Inverted index searching
 In directory index/. More details about the algorithm and results can be found in our paper [2]. Our code builds an inverted index of a dataset of wikipedia documents.
 
-### Version maintenance for single-writer transactional memories
-In directly concurrency/. More details about the algorithm and results can be found in our paper [4]. We implemented both a simple lock-free algorithm and a more involved wait-free algorithm.
+### Version maintenance for transactional memories
+To be updated. More details about the algorithm and results can be found in our paper [4]. 
 
 ### An HTAP database system
-To be updated
+To be updated. 
 
 ## Reference
 [1] Yihan Sun, Daniel Ferizovic, and Guy E. Blelloch. Parallel Ordered Sets Using Just Join. SPAA 2016. 
 
 [2] Yihan Sun, Daniel Ferizovic, and Guy E. Blelloch. PAM: Parallel Augmented Maps. PPoPP 2018. 
 
-[3] Yihan Sun and Guy Blelloch. Parallel Range, Segment and Rectangle Queries with Augmented Maps. ArXiv:1803.08621.
+[3] Yihan Sun and Guy Blelloch. Parallel Range, Segment and Rectangle Queries with Augmented Maps. ALENEX 2019 (also, ArXiv:1803.08621).
 
-[4] Naama Ben-David, Guy E. Blelloch, Yihan Sun and Yuanhao Wei. Efficient Single Writer Concurrency. ArXiv:1803.08617.
+[4] Naama Ben-David, Guy E. Blelloch, Yihan Sun and Yuanhao Wei. Multiversion Concurrency with Bounded Delay and Precise Garbage Collection. SPAA 2019 (also, ArXiv:1803.08617).
 
 [5] TPC benchmarks. http://www.tpc.org/
