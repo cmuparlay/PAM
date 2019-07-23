@@ -1,0 +1,23 @@
+ifeq (, $(shell which jemalloc-config))
+JEMALLOC =
+else
+JEMALLOCLD = $(shell jemalloc-config --libdir)
+JEMALLOC = -L$(JEMALLOCLD) -ljemalloc 
+endif
+
+ifdef CILK
+CC = g++
+CPFLAGS = -DCILK -fcilkplus
+LPFLAGS = 
+else ifdef SERIAL
+CC = g++
+CPFLAGS =
+LPFLAGS =
+else # default is homegrown
+CC = g++
+CPFLAGS = -DHOMEGROWN
+LPFLAGS = -pthread
+endif
+
+CFLAGS = -mcx16 -O3 -std=c++17 -march=native -Wall -I../c++ $(CPFLAGS) 
+LFLAGS = $(LPFLAGS) $(JEMALLOC)
