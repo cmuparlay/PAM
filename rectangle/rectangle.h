@@ -30,9 +30,9 @@ void print_out(rec_type e) {
 template<typename T>
 void output_content(T t) {
 	using ent = typename T::E;
-	sequence<ent> out(t.size());
+	pbbs::sequence<ent> out(t.size());
 	cout << t.size() << ": ";
-	T::entries(t, out.as_array());
+	T::entries(t, out.begin());
 	for (int i = 0; i < out.size(); i++) {
 		print_out(out[i]);
 		cout << " ";

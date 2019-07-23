@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
 #include "pbbslib/utilities.h"
 #include "basic_node.h"
 #include "augmented_node.h"

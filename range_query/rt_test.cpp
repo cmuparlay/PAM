@@ -104,8 +104,11 @@ void reset_timers() {
 
 void run_all(vector<point_type>& points, size_t iteration,
 	     data_type min_val, data_type max_val, size_t query_num) {
+  using RQ = RangeQuery<data_type, data_type>;
   string benchmark_name = "Query-All";
-  RangeQuery<data_type, data_type> *r = new RangeQuery<data_type, data_type>(points);
+  RQ::reserve(points.size());
+
+  RQ *r = new RQ(points);
 
   vector<Query_data> queries = generate_queries(query_num, min_val, max_val);
 
@@ -115,13 +118,14 @@ void run_all(vector<point_type>& points, size_t iteration,
   timer t_query_total;
   t_query_total.start();
   parallel_for(0, query_num, [&] (size_t i) {
-    sequence<pair<int,int>> out = r->query_range(queries[i].x1, queries[i].y1,
+    pbbs::sequence<pair<int,int>> out = r->query_range(queries[i].x1, queries[i].y1,
 					       queries[i].x2, queries[i].y2);
     counts[i] = out.size();
     });
 
   t_query_total.stop();
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+  size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+			      pbbs::addm<size_t>());
 
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "RageTree"
@@ -142,6 +146,7 @@ void run_all(vector<point_type>& points, size_t iteration,
   reset_timers();
 
   delete r;
+  RQ::finish();
 }
 
 
@@ -161,7 +166,8 @@ void run_sum(vector<point_type>& points, size_t iteration, data_type min_val, da
     });
 
   t_query_total.stop();
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+  size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+			      pbbs::addm<size_t>());
 
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "RageTree"

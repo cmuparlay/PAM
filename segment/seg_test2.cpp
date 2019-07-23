@@ -157,7 +157,8 @@ int main(int argc, char** argv) {
 	});
       query_tm.stop();
 
-      size_t total = pbbs::reduce_add(sequence<size_t>(r,num_queries));
+      size_t total = pbbs::reduce(pbbs::sequence<size_t>(r,num_queries),
+				  pbbs::addm<size_t>());
 
       cout << "RESULT" << fixed << setprecision(3)
          << "\talgo=" << "SegCount"

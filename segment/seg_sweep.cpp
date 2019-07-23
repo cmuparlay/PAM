@@ -113,13 +113,13 @@ void run_all(vector<segment_t>& segs,
   t_query_total.start();
 
   parallel_for (0, query_num, [&] (size_t i) {
-    sequence<mkey_t> a = r.query_points(queries[i]);
+    pbbs::sequence<mkey_t> a = r.query_points(queries[i]);
     counts[i] = a.size();
     });
   t_query_total.stop();
 
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
-
+  size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+			      pbbs::addm<size_t>());
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "SegSweep"
        << "\tname=" << benchmark_name
@@ -166,7 +166,7 @@ void run_sum(vector<segment_t> segs,
 
   t_query_total.stop();
   
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+  size_t total = pbbs::reduce_add(pbbs::sequence<size_t>(counts,query_num));
   
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "SegSweep"
@@ -212,8 +212,8 @@ void run_sum(vector<segment_t>& segs,
 
   t_query_total.stop();
 
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
-  
+  size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+			      pbbs::addm<size_t>());
     cout << "RESULT" << fixed << setprecision(3)
 	 << "\talgo=" << "SegSweep"
 	 << "\tname=" << benchmark_name

@@ -118,7 +118,8 @@ void run(vector<Point>& points, size_t iteration,
 		 //cout << counts[i] << endl;
     });
   double tm_query = t_query.stop();
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+  size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+			      pbbs::addm<size_t>());
 
   RangeQuery::finish();
     

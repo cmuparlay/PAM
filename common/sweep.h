@@ -9,21 +9,20 @@ Ti* sweep(T* A, size_t n, Ti Init, F f, G g, H h, size_t num_blocks=0) {
     num_blocks = threads*factor;
   }
   size_t block_size = ((n-1)/num_blocks);
-  Tp* Sums = pbbs::new_array<Tp>(num_blocks);
   Ti* R = pbbs::new_array<Ti>(n+1);
 
   // generate partial sums for each block
-  parallel_for (0, num_blocks-1, [&] (size_t i) {
+  pbbs::sequence<Tp> Sums(num_blocks-1, [&] (size_t i) {
     size_t l = i * block_size;
     size_t r = l + block_size;
-    Sums[i] = g(A + l, A + r);
+    return g(A + l, A + r);
     });
 
   // Compute the prefix sums across blocks
   R[0] = Init;
   for (size_t i = 1; i < num_blocks; ++i) 
     R[i*block_size] = h(R[(i-1)*block_size], std::move(Sums[i-1]));
-  pbbs::delete_array(Sums, num_blocks);
+  Sums.clear();
   
   // Fill in final results within each block
   parallel_for (0, num_blocks, [&] (size_t i) {

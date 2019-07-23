@@ -66,17 +66,24 @@ struct RangeQuery {
   }
 
   ~RangeQuery() {
-    outer_map::finish();
-    inner_map::finish();
+    //outer_map::finish();
+    //inner_map::finish();
   }
-	
-  void construct(vector<point_type>& points) {
-    const size_t n = points.size();
-		
+
+  static void reserve(size_t n) {
     reserve_tm.start();
     outer_map::reserve(n);
     inner_map::reserve(24*n);
     reserve_tm.stop();
+  }
+  
+  static void finish() {
+    outer_map::finish();
+    inner_map::finish();
+  }
+  
+  void construct(vector<point_type>& points) {
+    const size_t n = points.size();
 		
     pair<point_x, w_type> *pointsEle = new pair<point_x, w_type>[n];
 		
@@ -142,10 +149,10 @@ struct RangeQuery {
     }
   };
   
-  sequence<point_y> query_range(x_type x1, y_type y1, x_type x2, y_type y2) {
+  pbbs::sequence<point_y> query_range(x_type x1, y_type y1, x_type x2, y_type y2) {
     size_t n = query_count(x1,y1,x2,y2);
-    sequence<point_y> out(n);
-    range_t qr(point_y(y1, x1), point_y(y2, x2), out.as_array());
+    pbbs::sequence<point_y> out(n);
+    range_t qr(point_y(y1, x1), point_y(y2, x2), out.begin());
     range_tree.range_sum(point_x(x1, y1), point_x(x2, y2), qr);
     return out;
   }

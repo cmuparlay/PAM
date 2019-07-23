@@ -6,8 +6,9 @@
 auto add = [] (float a, float b) -> float {
     return a + b;};
 
+using token = pbbs::sequence<char>;
+
 struct inv_index {
-  using word = char*;
   using doc_id = int;
   using weight = float;
 
@@ -27,47 +28,35 @@ struct inv_index {
 
   using post_list = aug_map<doc_entry>;
   
-  struct word_entry {
-    using key_t = word;
+  struct token_entry {
+    using key_t = token;
     using val_t = post_list;
     static inline bool comp(const key_t& a, const key_t& b) {
-      return strcmp(a, b) < 0;}
+      size_t m = std::min(a.size(), b.size());
+      for (size_t i = 0; i < m; i++) 
+	if (a.get(i) != b.get(i)) return a.get(i) < b.get(i);
+      return a.size() < b.size();
+    }
   };
   
-  using index_elt = pair<word, post_elt>;
-  using index_list = pair<word, post_list>;
-  using index = pam_map<word_entry>;
+  using index_elt = pair<token, post_elt>;
+  using index_list = pair<token, post_list>;
+  using index = pam_map<token_entry>;
 
   index idx;
 
-  /*
-  inv_index(index_elt* start, index_elt* end) {
-    size_t n = end - start;
-	timer t1; t1.start();
-    post_list::reserve((size_t) round(.45*n));
-    index::reserve(n/300);
-	t1.stop(); cout << "reserve: " << t1.get_total() << endl;
-    auto reduce = [] (sequence<post_elt> S) {
-      return post_list(S, add, true); };
-    sequence<index_elt> S(start,end);
+  inv_index(pbbs::sequence<index_elt> const &S) {
+    timer t("build index", false);
+    size_t n = S.size();
+    auto reduce = [&] (pbbs::range<post_elt*> R) {
+      return post_list(R, add, true); };
     idx = index::multi_insert_reduce(index(), S, reduce);
-	cout << "idx size: " << idx.size() << endl;
-  }*/
-  
-  inv_index(index_elt* start, index_elt* end) {
-    size_t n = end - start;
-	timer t1; t1.start();
-    post_list::reserve((size_t) round(.45*n));
-    index::reserve(n/300);
-    t1.stop(); //cout << "reserve: " << t1.get_total() << endl;
-    auto reduce = [] (post_elt* s, post_elt* e) {
-      return post_list(s,e,add, true); };
-    //sequence<index_elt> S(start,end);
-    idx = index::multi_insert_reduce(index(), start, n, reduce);
-    //cout << "idx size: " << idx.size() << endl;
+    t.next("build");
   }
 
-  post_list get_list(const word w) {
+  inv_index() {}
+      
+  post_list get_list(const token w) {
     maybe<post_list> p = idx.find(w);
     if (p) return *p;
     else return post_list();
@@ -82,9 +71,9 @@ struct inv_index {
   static post_list And_Not(post_list a, post_list b) {
     return post_list::map_difference(a,b);}
 
-  std::vector<post_elt> top_k(post_list a, int k) {
+  vector<post_elt> top_k(post_list a, int k) {
     int l = min<int>(k,a.size());
-    std::vector<post_elt> vec(l);
+    vector<post_elt> vec(l);
     post_list b = a;
     for (int i=0; i < l; i++) {
       weight m = b.aug_val();

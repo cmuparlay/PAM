@@ -95,13 +95,14 @@ void run_all(vector<seg_type_2d>& segs, size_t iteration, int min_val, int max_v
 	int tot = 0;
 	parallel_for (0, query_num, [&] (size_t i) {
 	    int cnt = r.query_count(queries[i], 0);
-	    sequence<seg_type_2d> out(cnt*2);
-	    r.query_points(queries[i], out.as_array());
+	    pbbs::sequence<seg_type_2d> out(cnt*2);
+	    r.query_points(queries[i], out.begin());
 	    counts[i] = out.size();
 	  });
 
 	t_query_total.stop();
-    size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+	size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+				    pbbs::addm<size_t>());
 
    cout << "RESULT" << fixed << setprecision(3)
 	<< "\talgo=" << "SegTree"
@@ -149,7 +150,8 @@ void run_sum(vector<seg_type_2d>& segs, size_t iteration, int min_val, int max_v
 	  });
 
 	t_query_total.stop();
-    size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+	size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+				    pbbs::addm<size_t>());
 	
     cout << "RESULT" << fixed << setprecision(5)
 	 << "\talgo=" << "SegTree"

@@ -1,11 +1,10 @@
-CC = g++ 
-CFLAGS = -O2 -I../c++ -mcx16 -march=native -DCILK -fcilkplus -std=c++11 -Wall
+include ../Makeheader 
 
 index:	index.cpp index.h 
-	$(CC) $(CFLAGS) index.cpp -o index
+	$(CC) $(CFLAGS) index.cpp -o index $(LFLAGS)
 
 index_w:	index_w.cpp index_w.h 
-	$(CC) $(CFLAGS) index_w.cpp -o index_w
+	$(CC) $(CFLAGS) index_w.cpp -o index_w $(LFLAGS)
 
 wiki_small.txt: 
 	bunzip2 wiki_small.txt.bz2

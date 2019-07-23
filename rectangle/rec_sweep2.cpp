@@ -76,8 +76,8 @@ vector<rec_type> generate_recs(size_t n, int a, int b) {
 	using pp = pair<int, int>;
 	//pp* x = pbbs::new_array<pp>(n*2);
 	//pp* y = pbbs::new_array<pp>(n*2);
-	sequence<pp> x(n*2);
-	sequence<pp> y(n*2);
+	pbbs::sequence<pp> x(n*2);
+	pbbs::sequence<pp> y(n*2);
 	bool dup = true;
 	while (dup) {
 	  parallel_for (0, n, [&] (size_t i) {
@@ -161,7 +161,8 @@ void run_sum(vector<rec_type>& recs,
     });
   t_query_total.stop();
 
-  size_t total = pbbs::reduce_add(sequence<size_t>(counts,query_num));
+  size_t total = pbbs::reduce(pbbs::sequence<size_t>(counts,query_num),
+			      pbbs::addm<size_t>());
 
   cout << "RESULT" << fixed << setprecision(3)
        << "\talgo=" << "RecSweep"

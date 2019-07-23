@@ -88,31 +88,30 @@ std::mt19937_64& get_rand_gen() {
   return generator;
 }
 
-sequence<par> uniform_input(size_t n, size_t window, bool shuffle = false) {
+pbbs::sequence<par> uniform_input(size_t n, size_t window, bool shuffle = false) {
   auto g = [&] (size_t i) {
     uniform_int_distribution<> r_keys(1, window);
     key_type key = r_keys(get_rand_gen());
     key_type val = i; 
     return make_pair(key,val);
   };
-  sequence<par> Pairs(n, g);
+  pbbs::sequence<par> Pairs(n, g);
   auto addfirst = [] (par a, par b) -> par {
     return par(a.first+b.first, b.second);};
-  pbbs::scan(Pairs, Pairs,
-	     addfirst, par(0,0),
-	     pbbs::fl_scan_inclusive);
-  if (shuffle) pbbs::random_shuffle(Pairs);
+  pbbs::scan_inplace(Pairs.slice(), pbbs::make_monoid(addfirst,par(0,0)),
+		     pbbs::fl_scan_inclusive);
+  //if (shuffle) pbbs::random_shuffle(Pairs);
   return Pairs;
 }
 
-sequence<par> uniform_input_unsorted(size_t n, size_t window) {
+pbbs::sequence<par> uniform_input_unsorted(size_t n, size_t window) {
   auto f = [&] (size_t i) {
     uniform_int_distribution<> r_keys(1, window);
     key_type k = r_keys(get_rand_gen());
     key_type c = r_keys(get_rand_gen());
     return make_pair(k, c);
   };
-  sequence<par> v(n, f);
+  pbbs::sequence<par> v(n, f);
   return v;
 }
 
@@ -234,10 +233,10 @@ bool contains(const tmap& m, const par* v) {
 double test_union(size_t n, size_t m) {
   t.start();
 
-  sequence<par> v1 = uniform_input(n, 20); 
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input(m, (n/m) * 20); 
+  pbbs::sequence<par> v2 = uniform_input(m, (n/m) * 20); 
   tmap m2(v2);
   double tm;
     
@@ -254,10 +253,10 @@ double test_union(size_t n, size_t m) {
 }
 
 double test_incremental_union_nonpersistent(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20, true); 
+  pbbs::sequence<par> v1 = uniform_input(n, 20, true); 
   tmap m1(v1);
 	
-  sequence<par> v2 = uniform_input(n, 20, true); 
+  pbbs::sequence<par> v2 = uniform_input(n, 20, true); 
 	
   //size_t round = n/m;
   timer t;
@@ -274,10 +273,10 @@ double test_incremental_union_nonpersistent(size_t n, size_t m) {
 }
 
 double test_intersect(size_t n, size_t m) {    
-  sequence<par> v1 = uniform_input(n, 2);
+  pbbs::sequence<par> v1 = uniform_input(n, 2);
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input(m, (n/m) * 2);
+  pbbs::sequence<par> v2 = uniform_input(m, (n/m) * 2);
   tmap m2(v2);
 
   timer t;
@@ -293,10 +292,10 @@ double test_intersect(size_t n, size_t m) {
 }
 
 double test_deletion(size_t n, size_t m) {
-  sequence<par> v = uniform_input(n, 20);
+  pbbs::sequence<par> v = uniform_input(n, 20);
   tmap m1(v);
 
-  sequence<par> u = uniform_input(m, (n/m)*20, true);
+  pbbs::sequence<par> u = uniform_input(m, (n/m)*20, true);
 
   timer t;
   t.start();
@@ -308,7 +307,7 @@ double test_deletion(size_t n, size_t m) {
 }
 
 double test_deletion_destroy(size_t n) {
-  sequence<par> v = uniform_input(n, 20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20, true);
   tmap m1;
   for (size_t i = 0; i < n; ++i) 
     m1.insert(v[i]);
@@ -324,7 +323,7 @@ double test_deletion_destroy(size_t n) {
 }
 
 double test_insertion_build(size_t n) {
-  sequence<par> v = uniform_input(n, 20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20, true);
   tmap m1;
 
   timer t;
@@ -337,7 +336,7 @@ double test_insertion_build(size_t n) {
 }
 
 double test_insertion_build_persistent(size_t n) {
-  sequence<par> v = uniform_input(n, 20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20, true);
   tmap m1;
   tmap* r = new tmap[n];
   tmap::reserve(30*n);
@@ -356,10 +355,10 @@ double test_insertion_build_persistent(size_t n) {
 }
 
 double test_insertion(size_t n, size_t m) {
-  sequence<par> v = uniform_input(n, 20);
+  pbbs::sequence<par> v = uniform_input(n, 20);
   tmap m1(v);
 
-  sequence<par> u = uniform_input(m, (n/m)*20, true);
+  pbbs::sequence<par> u = uniform_input(m, (n/m)*20, true);
 
   timer t;
   t.start();
@@ -385,8 +384,8 @@ tmap build_slow(par* A, size_t n) {
 }
 
 double test_multi_insert(size_t n, size_t m) {
-  sequence<par> v = uniform_input(n, 20,true );
-  sequence<par> u = uniform_input(m, (n/m)*20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20,true );
+  pbbs::sequence<par> u = uniform_input(m, (n/m)*20, true);
   tmap m1(v);
 
   timer t;
@@ -398,8 +397,8 @@ double test_multi_insert(size_t n, size_t m) {
 
 
 double test_dest_multi_insert(size_t n, size_t m) {
-  sequence<par> v = uniform_input(n, 20, true);
-  sequence<par> u = uniform_input(m, (n/m)*20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20, true);
+  pbbs::sequence<par> u = uniform_input(m, (n/m)*20, true);
   tmap m1(v);
 
   timer t;
@@ -412,8 +411,8 @@ double test_dest_multi_insert(size_t n, size_t m) {
 
 
 double stl_insertion(size_t n, size_t m) {
-  sequence<par> v = uniform_input(n, 20);
-  sequence<par> u = uniform_input(m, (n/m)*20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20);
+  pbbs::sequence<par> u = uniform_input(m, (n/m)*20, true);
 
   map<key_type, key_type> m1;
   for (size_t i = 0; i < n; ++i) 
@@ -429,7 +428,7 @@ double stl_insertion(size_t n, size_t m) {
 }
 
 double stl_insertion_build(size_t n) {
-  sequence<par> v = uniform_input(n, 20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20, true);
   map<key_type, key_type> m1;
 
   timer t;
@@ -442,7 +441,7 @@ double stl_insertion_build(size_t n) {
 }
 
 double stl_delete_destroy(size_t n) {
-  sequence<par> v = uniform_input(n, 20, true);
+  pbbs::sequence<par> v = uniform_input(n, 20, true);
   map<key_type, key_type> m1;
   pbbs::random_shuffle(v);
 
@@ -457,7 +456,7 @@ double stl_delete_destroy(size_t n) {
 
 
 double test_build(size_t n) {
-  sequence<par> v = uniform_input_unsorted(n, 1000000000);
+  pbbs::sequence<par> v = uniform_input_unsorted(n, 1000000000);
 
   timer t;
   t.start();
@@ -471,7 +470,7 @@ double test_build(size_t n) {
 }
 
 double test_filter(size_t n) {
-  sequence<par> v = uniform_input(n, 20);
+  pbbs::sequence<par> v = uniform_input(n, 20);
   tmap m1(v);
 
   timer t;
@@ -487,7 +486,7 @@ double test_filter(size_t n) {
 }
 
 double test_map_reduce(size_t n) {
-  sequence<par> v = uniform_input(n, 20);
+  pbbs::sequence<par> v = uniform_input(n, 20);
   tmap m1(v);
 
   timer t;
@@ -500,7 +499,7 @@ double test_map_reduce(size_t n) {
 }
 
 double test_aug_filter(size_t n, size_t m) {
-  sequence<par> v = uniform_input(n, 20);
+  pbbs::sequence<par> v = uniform_input(n, 20);
   key_type threshold = n-m;
   tmap m1(v);
   tmap res = m1;
@@ -530,11 +529,11 @@ double test_aug_filter(size_t n, size_t m) {
 }
 
 double test_dest_union(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   tmap m1(v1);
   tmap m1_copy(v1);
 
-  sequence<par> v2 = uniform_input(m, (n/m) * 20);
+  pbbs::sequence<par> v2 = uniform_input(m, (n/m) * 20);
   tmap m2(v2);
   tmap m2_copy(v2);
 
@@ -552,11 +551,11 @@ double test_dest_union(size_t n, size_t m) {
 
 
 double test_dest_intersect(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 2);
+  pbbs::sequence<par> v1 = uniform_input(n, 2);
   tmap m1(v1);
   tmap m1_copy(v1);
 
-  sequence<par> v2 = uniform_input(m, (n/m) * 2);
+  pbbs::sequence<par> v2 = uniform_input(m, (n/m) * 2);
   tmap m2(v2);
   tmap m2_copy(v2);
 
@@ -574,7 +573,7 @@ double test_dest_intersect(size_t n, size_t m) {
 
 
 double test_split(size_t n) {    
-  sequence<par>v = uniform_input(n, 20);
+  pbbs::sequence<par>v = uniform_input(n, 20);
 
   tmap m1(v);
 
@@ -594,10 +593,10 @@ double test_split(size_t n) {
 }
 
 double test_difference(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input(m, (n/m) * 20);
+  pbbs::sequence<par> v2 = uniform_input(m, (n/m) * 20);
   tmap m2(v2);
 
   timer t;
@@ -613,11 +612,11 @@ double test_difference(size_t n, size_t m) {
 }
 
 double test_find(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   key_type max_key = v1[n-1].first;
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input_unsorted(m, max_key);
+  pbbs::sequence<par> v2 = uniform_input_unsorted(m, max_key);
 
   bool *v3 = new bool[m];
 
@@ -633,11 +632,11 @@ double test_find(size_t n, size_t m) {
 }
 
 double test_range(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   key_type max_key = v1[n-1].first;
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input_unsorted(m, max_key);
+  pbbs::sequence<par> v2 = uniform_input_unsorted(m, max_key);
   // window size is 1/1000 of total width
   size_t win = max_key/1000;
 
@@ -660,11 +659,11 @@ double test_range(size_t n, size_t m) {
 }
 
 double test_aug_range(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input_unsorted(n, 1000000000);
+  pbbs::sequence<par> v1 = uniform_input_unsorted(n, 1000000000);
   key_type max_key = v1[n-1].first;
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input_unsorted(m, max_key);
+  pbbs::sequence<par> v2 = uniform_input_unsorted(m, max_key);
   // window size is 1/1000 of total width
   size_t win = max_key/1000;
 
@@ -685,11 +684,11 @@ double test_aug_range(size_t n, size_t m) {
 }
 
 double test_aug_left(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   key_type max_key = v1[n-1].first;
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input_unsorted(m, max_key);
+  pbbs::sequence<par> v2 = uniform_input_unsorted(m, max_key);
 
   key_type *v3 = new key_type[m];
 
@@ -709,8 +708,8 @@ double test_aug_left(size_t n, size_t m) {
 
 
 double stl_set_union(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
-  sequence<par> v2 = uniform_input(m, 20 * (n / m));
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v2 = uniform_input(m, 20 * (n / m));
 
   set <key_type> s1, s2, sret;
   for (size_t i = 0; i < n; ++i) {
@@ -729,8 +728,8 @@ double stl_set_union(size_t n, size_t m) {
 }
 
 double stl_map_union(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
-  sequence<par> v2 = uniform_input(m, 20 * (n / m));
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v2 = uniform_input(m, 20 * (n / m));
 
   std::map <key_type,key_type> s1, s2;
   for (size_t i = 0; i < n; ++i) {
@@ -751,8 +750,8 @@ double stl_map_union(size_t n, size_t m) {
 
 
 double stl_vector_union(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
-  sequence<par> v2 = uniform_input(m, 20 * (n / m));
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v2 = uniform_input(m, 20 * (n / m));
 
   vector <mapped> s1, s2, sret;
   sret.reserve(m+n);
@@ -774,10 +773,10 @@ double stl_vector_union(size_t n, size_t m) {
 
 double intersect_multi_type(size_t n, size_t m) {
 
-  sequence<par> v1 = uniform_input(n, 2);
+  pbbs::sequence<par> v1 = uniform_input(n, 2);
   tmap m1(v1);
 
-  sequence<par> v2 = uniform_input(m, (n/m) * 2);
+  pbbs::sequence<par> v2 = uniform_input(m, (n/m) * 2);
   pair<key_type, bool>* vv2 = new pair<key_type, bool>[m];
   for (size_t i = 0; i < m; i++) {
     vv2[i].first = v2[i].first;
@@ -850,11 +849,11 @@ string test_name[] = {
 };
 
 double flat_aug_range(size_t n, size_t m) {
-  sequence<par> v1 = uniform_input(n, 20);
+  pbbs::sequence<par> v1 = uniform_input(n, 20);
   key_type max_key = v1[n-1].first;
   tmap m1(v1, true);
 
-  sequence<par> v2 = uniform_input_unsorted(m, max_key);
+  pbbs::sequence<par> v2 = uniform_input_unsorted(m, max_key);
 
   key_type *v3 = new key_type[m];
   size_t win = v1[n-1].first/1000;

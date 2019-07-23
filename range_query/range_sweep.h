@@ -54,10 +54,10 @@ struct RangeQuery {
     
     xs = pbbs::new_array<coord>(n);
     entry_t *ys = pbbs::new_array<entry_t>(n);
-    for (size_t i = 0; i < n; ++i) {
+    parallel_for (0, n, [&] (size_t i) {
       xs[i] = A[i].x;
       ys[i] = entry_t(A[i].y, A[i].w);
-    }
+      });
 
     auto plus = [] (weight a, weight b) {return a + b;};
     

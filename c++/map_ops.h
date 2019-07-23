@@ -1,6 +1,6 @@
 #pragma once
 #include "utils.h"
-#include "sequence_ops.h"
+#include "pbbslib/sequence.h"
 #include "pbbslib/binary_search.h"
 
 // *******************************************
@@ -446,7 +446,7 @@ struct map_ops : Seq {
     bool copy = extra_ptr || (b->ref_cnt > 1);
     K bk = get_key(b);
     auto less_val = [&] (ET& a) -> bool {return Entry::comp(Entry::get_key(a),bk);};
-    size_t mid = pbbs::binary_search(sequence<ET>(A, n), less_val);
+    size_t mid = pbbs::binary_search(pbbs::sequence<ET>(A, n), less_val);
     bool dup = (mid < n) && (!Entry::comp(bk, Entry::get_key(A[mid])));
 	  
     auto P = utils::fork<node*>(utils::do_parallel(Seq::size(b), n),
@@ -467,7 +467,7 @@ struct map_ops : Seq {
     bool copy = extra_ptr || (b->ref_cnt > 1);
     K bk = get_key(b);
     auto less_val = [&] (std::pair<K, VE>& a) -> bool {return Entry::comp(a.first,bk);};
-    size_t mid = pbbs::binary_search(sequence<std::pair<K, VE>>(A, n), less_val);
+    size_t mid = pbbs::binary_search(pbbs::sequence<std::pair<K, VE>>(A, n), less_val);
     bool dup = (mid < n) && (!Entry::comp(bk, A[mid].first));
 	
     auto P = utils::fork<node*>(utils::do_parallel(Seq::size(b), n),
@@ -485,7 +485,7 @@ struct map_ops : Seq {
     if (n == 0) return true;
     K bk = get_key(b);
     auto less_val = [&] (K a) -> bool {return Entry::comp(a,bk);};
-    size_t mid = pbbs::binary_search(sequence<K>(A, n), less_val);
+    size_t mid = pbbs::binary_search(pbbs::sequence<K>(A, n), less_val);
     bool dup = (mid < n) && (!Entry::comp(bk, A[mid]));
     utils::fork<bool>(utils::do_parallel(Seq::size(b), n),
 	       [&] () {return multi_find_sorted(b->lc, A, mid, ret, offset);},

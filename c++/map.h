@@ -78,17 +78,22 @@ public:
   // construct from an array keeping one of the equal keys
   map_(E* s, E* e, bool seq_inplace = false) {
     M empty = M();
-    root = multi_insert(empty,sequence<E>(s,e), seq_inplace).get_root(); }
+    root = multi_insert(empty, pbbs::range<E*>(s,e), seq_inplace).get_root(); }
 
   // construct from an array keeping one of the equal keys
   template<class Bin_Op>
   map_(E* s, E* e, Bin_Op f, bool seq_inplace = false) {
     M empty = M();
-    root = multi_insert_combine(empty,sequence<E>(s,e),f,seq_inplace).get_root(); }
+    root = multi_insert_combine(empty, pbbs::range<E*>(s,e),
+				f, seq_inplace).get_root(); }
 
   // construct from sequence keeping one of the equal keys
-  map_(sequence<E> S, bool seq_inplace = false) {
+  //template<class Seq>
+  //  map_(Seq const &S, bool seq_inplace = false) {
+  map_(pbbs::sequence<E> const &S, bool seq_inplace = false) {
+    //cout << "halli" << endl;
     M empty = M();
+    //cout << "halli2" << endl;
     root = multi_insert(empty, S, seq_inplace).get_root(); }
 
   // construct from sequence keeping one of the equal keys
@@ -112,7 +117,6 @@ public:
   // some basic functions
   // tree size
   size_t size() const {
-    //cout << "size: " << Tree::size(root) << "; " << root->ref_cnt << endl;
     return Tree::size(root); }
 
   // equality 
@@ -135,9 +139,9 @@ public:
 
   // apply function f to all entries in the tree and flatten them to a sequence
   template <class OT, class F>
-  static sequence<OT> to_seq(M m, const F& f,
+  static pbbs::sequence<OT> to_seq(M m, const F& f,
 			     size_t granularity=utils::node_limit) {
-    sequence<OT> out = sequence<OT>::alloc_no_init(m.size());
+    pbbs::sequence<OT> out = pbbs::sequence<OT>::no_init(m.size());
     auto g = [&] (E& e, size_t i) {
       pbbs::assign_uninitialized(out[i],f(e));};
     Tree::foreach_index(m.get_root(), 0, g, granularity);
@@ -151,7 +155,7 @@ public:
   }
 
   // flatten all entries to a sequence
-  static sequence<E> entries(M m, size_t granularity=utils::node_limit) {
+  static pbbs::sequence<E> entries(M m, size_t granularity=utils::node_limit) {
     auto f = [] (E e) -> E {return e;};
     return to_seq<E>(m, f, granularity);
   }
@@ -215,8 +219,9 @@ public:
   static M filter(M m, const F& f, size_t granularity=utils::node_limit) {
     return M(Tree::filter(m.get_root(), f, granularity)); }
 
-  static M from_sorted(sequence<E> S) {
-    return M(Tree::from_array(S.as_array(), S.size()));
+  template<class Seq>
+  static M from_sorted(Seq const &S) {
+    return M(Tree::from_array(S.begin(), S.size()));
   }
   
   // determines if there is any entry in the tree satisfying indicator f
@@ -230,39 +235,46 @@ public:
   }
     
   // insert multiple keys from an array
-  //template<class Seq>
-  static M multi_insert(M m, sequence<E> SS, bool seq_inplace = false, bool inplace = false) {
+  template<class Seq>
+  static M multi_insert(M m, Seq const &SS,
+			bool seq_inplace = false, bool inplace = false) {
     auto replace = [] (const V& a, const V& b) {return b;};
-    sequence<E> A = Build::sort_remove_duplicates(SS, seq_inplace, inplace);
-    auto x = M(Tree::multi_insert_sorted(m.get_root(), A.as_array(),
-				       A.size(), replace));
+    //cout << "halli3" << endl;
+    pbbs::sequence<E> A = Build::sort_remove_duplicates(SS, seq_inplace, inplace);
+    //cout << "halli4" << endl;
+    auto x = M(Tree::multi_insert_sorted(m.get_root(), A.begin(),
+					 A.size(), replace));
+    //cout << "halli5" << endl;
     return x;
   }
   
-  static M multi_insert(M m, E* A, size_t n) {
-    auto replace = [] (const V& a, const V& b) {return b;};
-    sequence<E> B = Build::sort_remove_duplicates(A, n);
-    auto x =  M(Tree::multi_insert_sorted(m.get_root(),
-    				       B.as_array(), B.size(), replace));
-    return x;
-  }
+  //static M multi_insert(M m, E* A, size_t n) {
+  //   auto replace = [] (const V& a, const V& b) {return b;};
+  //   pbbs::sequence<E> B = Build::sort_remove_duplicates(A, n);
+  //   auto x =  M(Tree::multi_insert_sorted(m.get_root(),
+  // 					  B.begin(), B.size(), replace));
+  //   return x;
+  // }
   
   // update multiple entries from a sorted array
   //template<class Seq>
-  template<class VE, class Bin_Op>
-  static M multi_update_sorted(M m, sequence<pair<K, VE>> SS, Bin_Op f) {
-    return M(Tree::multi_update_sorted(m.get_root(), SS.as_array(),
+  template<class Seq, class Bin_Op>
+  static M multi_update_sorted(M m, Seq const &SS, Bin_Op f) {
+    return M(Tree::multi_update_sorted(m.get_root(), SS.begin(),
 				       SS.size(), f));
   }
   
   // update multiple entries from an array
   //template<class Seq>
-  template<class VE, class Bin_Op>
-    static M multi_update(M m, sequence<pair<K, VE>> SS, Bin_Op f) {
+  template<class Seq, class Bin_Op>
+  static M multi_update(M m, Seq const &SS, Bin_Op f) {
+    using EE = typename Seq::value_type;
+    using VV = typename EE::second_type;
+      
     struct e_type {
+      using entry_t = EE;
       using key_t = K;
-      using val_t = VE;
-      using entry_t = pair<K,VE>;
+      using val_t = VV;
       static bool comp(const key_t& a, const key_t& b) {return a<b;}
       static inline key_t get_key(const entry_t& e) {return e.first;}
       static inline val_t get_val(const entry_t& e) {return e.second;}
@@ -270,49 +282,56 @@ public:
     };
 		
     using BD = build<e_type>;
-    sequence<pair<K, VE>> B = BD::sort_remove_duplicates(SS);
-    return M(Tree::multi_update_sorted(m.get_root(), B.as_array(),
+    pbbs::sequence<pair<K, VV>> B = BD::sort_remove_duplicates(SS);
+    return M(Tree::multi_update_sorted(m.get_root(), B.begin(),
 				       B.size(), f));
   }
-  
-  static V* multi_find(M m, sequence<K> SS) {
+
+  template<class Seq>
+  static V* multi_find(M m, Seq const &SS) {
+    using K = typename Seq::value_type;
     auto less = [&] (K& a, K &b) {return Entry::comp(a,b);};
-    sequence<K> B = pbbs::sample_sort(SS, less);
+    pbbs::sequence<K> B = pbbs::sample_sort(SS, less);
     V* ret = new V[B.size()];
-    Tree::multi_find_sorted(m.get_root(), B.as_array(),
+    Tree::multi_find_sorted(m.get_root(), B.begin(),
 			    B.size(), ret, 0);
     return ret;
   }
   
   // insert multiple keys from an array
-  //template<class Seq>
-  static M multi_insert_sorted(M m, sequence<E> SS, bool seq_inplace = false) {
+  template<class Seq>
+  static M multi_insert_sorted(M m, Seq const &SS, bool seq_inplace = false) {
     auto replace = [] (const V& a, const V& b) {return b;};
-    return M(Tree::multi_insert_sorted(m.get_root(), SS.as_array(),
+    return M(Tree::multi_insert_sorted(m.get_root(), SS.begin(),
 				       SS.size(), replace));
   }
 
   // insert multiple keys from an array, combine duplicates with f
   // here f must have type: V x V -> V
   // if key in map, then also combined with f
-  template<class Bin_Op>
-  static M multi_insert_combine(M m, sequence<E> S, Bin_Op f,
+  template<class Seq, class Bin_Op>
+  static M multi_insert_combine(M m, Seq const &S, Bin_Op f,
 				bool seq_inplace = false) {
-    sequence<E> A = Build::sort_combine_duplicates(S, f, seq_inplace);
-
-    return M(Tree::multi_insert_sorted(m.get_root(),
-				       A.as_array(), A.size(), f));
+    if (seq_inplace) {
+      auto A = Build::sort_combine_duplicates_inplace(S, f);
+      return M(Tree::multi_insert_sorted(m.get_root(),
+					 A.begin(), A.size(), f));
+    } else {
+      auto A = Build::sort_combine_duplicates(S, f);
+      return M(Tree::multi_insert_sorted(m.get_root(),
+					 A.begin(), A.size(), f));
+    }
   }
 
   // insert multiple keys from an array, reduce duplicates with g
   // here g must have type: sequence<Val> -> V
   // if key in map, then replaced
-  template<class Val, class Reduce>
-  static M multi_insert_reduce(M m, sequence<pair<K,Val>> S, Reduce g) {
+  template<class Seq, class Reduce>
+  static M multi_insert_reduce(M m, Seq const &S, Reduce g) {
     auto replace = [] (const V& a, const V& b) {return b;};
-    sequence<E> A = Build::sort_reduce_duplicates(S, g);
+    pbbs::sequence<E> A = Build::sort_reduce_duplicates(S, g);
     auto x =  M(Tree::multi_insert_sorted(m.get_root(),
-    				       A.as_array(), A.size(), replace));
+					  A.begin(), A.size(), replace));
     return x;
   }
   

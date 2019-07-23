@@ -6,7 +6,7 @@
 	
 	Parallel Range, Segment and Rectangle Queries with Augmented Maps
 	Yihan Sun and Guy Blelloch
-	arXiv:1803.08621
+	ALENEX 2019
 */
 
 #include <algorithm>
@@ -16,8 +16,8 @@
 #include <cstdlib>
 #include <iomanip>
 #include "range_sweep_list.h"
-//#include "pbbs-include/get_time.h"
-#include "pbbs-include/parse_command_line.h"
+#include "pbbslib/get_time.h"
+#include "pbbslib/parse_command_line.h"
 
 using namespace std;
 
@@ -49,7 +49,7 @@ int random_hash(int seed, int a, int rangeL, int rangeR) {
 vector<Point> generate_points(size_t n, coord a, coord b) {
   vector<Point> ret(n);
 
-  cilk_for (size_t i = 0; i < n; ++i) {
+  parallel_for (size_t i = 0; i < n; ++i) {
     ret[i].x = random_hash('x', i, a, b);
     ret[i].y = random_hash('y', i, a, b);
     ret[i].w = 1; //random_hash('w', i, a, b);
@@ -64,7 +64,7 @@ vector<Point> generate_points(size_t n, coord a, coord b) {
 vector<tuple_type> generate_queries(size_t q, coord a, coord b) {
   vector<tuple_type> ret(q);
 
-  cilk_for (size_t i = 0; i < q; ++i) {
+  parallel_for (size_t i = 0; i < q; ++i) {
     coord x1 = random_hash('q'*'x', i*2, a, b);
     coord y1 = random_hash('q'*'y', i*2, a, b);
 	int dx = random_hash('d'*'x', i, 0, win);
@@ -108,7 +108,7 @@ void run(vector<Point>& points, size_t iteration,
 
   timer t_query;
   t_query.start();
-  cilk_for (size_t i = 0; i < query_num; i++) {
+  parallel_for (size_t i = 0; i < query_num; i++) {
     vector<unwPoint> ans = r->query(std::get<0>(queries[i]), std::get<1>(queries[i]), 
 	     std::get<2>(queries[i]), std::get<3>(queries[i]));
 

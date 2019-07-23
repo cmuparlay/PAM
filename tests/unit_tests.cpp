@@ -76,9 +76,9 @@ void test_map(int balance_type) {
   char names[4][10] = {"WB", "RB", "treap", "AVL"};
   cout << "testing: " << names[balance_type] << endl;
 
-  elt a[3] = {elt(2,4), elt(4,5), elt(6,8)};
+  pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8)};
 
-  map ma(a,a+3);
+  map ma(a);
   check(ma.size() == 3, "size check ma");
 
   check(*ma.find(4) == 5, "find check 4");
@@ -130,9 +130,9 @@ void test_map(int balance_type) {
   check(ma.size() == 4, "size check insert with sum");
   check(*ma.find(6) == 13, "find check insert with sum");
 
-  elt b[2] = {elt(1,6), elt(4,3)};
+  pbbs::sequence<elt> b = {elt(1,6), elt(4,3)};
 
-  map *mb_p = new map(b,b+2);
+  map *mb_p = new map(b);
   check(mb_p->size() == 2, "size check mb");
   check(*(mb_p->find(4)) == 3, "find check mb");
 
@@ -250,39 +250,37 @@ void test_map_reserve_finish() {
   size_t n = 1000;
   for (size_t i = 0; i < 10; i++) {
     map::reserve(20);
-    elt *a = new elt[n];
-    elt *b = new elt[n];
-    for (size_t i=0; i <n; i++) {
-      a[i] = elt(n*i + rand()%n,0);
-      b[i] = elt(n*i + rand()%n,0);
+    {
+      pbbs::sequence<elt> a(n, [&] (size_t i) {
+	  return elt(n*i + rand()%n,0);});
+      pbbs::sequence<elt> b(n, [&] (size_t i) {
+	  return elt(n*i + rand()%n,0);});
+      map ma(a);
+      map mb(b);
+      check(ma.size() == n, "size check map reserve");
+      check(mb.size() == n, "size check map reserve");
     }
-    map ma(a,a+n);
-    map mb(b,b+n);
-    check(ma.size() == n, "size check map reserve");
-    check(mb.size() == n, "size check map reserve");
     map::finish();
-    delete[] a;
-    delete[] b;
   }
 } 
 
 void test_map_more() {
 
   { // equality test
-    elt a[3] = {elt(2,4), elt(4,5), elt(6,8)};
-    elt b[2] = {elt(2,4), elt(4,5)};    
-    map ma(a,a+3);
-    map mb(b,b+2);
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8)};
+    pbbs::sequence<elt> b = {elt(2,4), elt(4,5)};    
+    map ma(a);
+    map mb(b);
     check (!(ma == mb), "equality check, not equal");
     ma = map::remove(move(ma),6);
     check (ma == mb, "equality check, equal");
   }
 
   { // join2 test
-    elt a[3] = {elt(2,4), elt(4,5), elt(6,8)};
-    elt b[2] = {elt(9,0), elt(11,7)};    
-    map ma(a,a+3);
-    map mb(b,b+2);
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8)};
+    pbbs::sequence<elt> b = {elt(9,0), elt(11,7)};    
+    map ma(a);
+    map mb(b);
     map mc = map::join2(ma,mb);
     check (mc.size() == 5, "join2 size check");
     check (*mc.find(6) == 8, "join2 val test 6");
@@ -296,20 +294,20 @@ void test_map_more() {
       static T add(T a, T b) { return a + b;}
     };
 
-    elt a[5] = {elt(2,4), elt(4,5), elt(6,8), elt(9,1), elt(12, 2)};
-    map ma(a,a+5);
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8), elt(9,1), elt(12, 2)};
+    map ma(a);
     auto f = [&] (elt e) -> long { return (long) 2 * e.second;};
     long x = map::map_reduce(ma, f, Add());
     check (x == 40, "map_reduce test");
   }
 
   { // map_filter test
-    elt a[5] = {elt(2,4), elt(4,5), elt(6,8), elt(9,1), elt(12, 2)};
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8), elt(9,1), elt(12, 2)};
     auto f = [&] (elt a) {
       if (a.first > 4) return maybe<int>(2*a.second);
       else return maybe<int>();
     };
-    map ma(a,a+5);
+    map ma(a);
     map mb = map::map_filter(ma,f);
     check (mb.size() == 3, "map_filter len test");
     check (*mb.find(6) == 16, "map_filter val test 6");
@@ -317,24 +315,24 @@ void test_map_more() {
   }
 
   { // self union test
-    elt a[3] = {elt(2,4), elt(4,5), elt(6,8)};
-    map ma(a,a+3);
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8)};
+    map ma(a);
     map mb = map::map_union(ma,ma);
     check (mb.size() == 3, "self union test");
   }  
 
   { // self intersection test
-    elt a[3] = {elt(2,4), elt(4,5), elt(6,8)};
-    map ma(a,a+3);
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8)};
+    map ma(a);
     map mb = map::map_intersect(ma,ma);
     check (mb.size() == 3, "self intersection test");
   }  
 
   { // build combine test
-    elt a[3] = {elt(2,4), elt(4,5), elt(2,6)};
-    elt b[2] = {elt(2,10), elt(4,5)};
-    map ma(a, a+3, [] (int a, int b) -> int {return a + b;});
-    map mb(b,b+2);
+    pbbs::sequence<elt> a = {elt(2,4), elt(4,5), elt(2,6)};
+    pbbs::sequence<elt> b = {elt(2,10), elt(4,5)};
+    map ma(a, [] (int a, int b) -> int {return a + b;});
+    map mb(b);
     check (mb.size() == 2, "length check, combine test");
     check ((*ma.select(0)).second == (4 + 6), "value check, combine test");
     check (ma == mb, "equality check, combine test");
@@ -350,20 +348,21 @@ void test_index() {
   using post_list = inv_index::post_list;
 
   const size_t word_count = 12;
-  const std::pair<const char*, size_t> words[] = { 
+  const std::pair<string, size_t> words[] = { 
         {"apple", 0}, {"pie", 0}, {"delicious", 0}, 
         {"is", 1}, {"pumpkin", 1}, {"pie", 1}, {"tasty", 1} , 
         {"not", 2}, {"everyone", 2}, {"likes", 2}, {"apple", 2}, {"pie", 2}
   };
 
-  index_elt* KV = pbbs::new_array_no_init<index_elt>(word_count);
-  for (size_t i = 0; i < word_count; ++i)
-    KV[i] = index_elt((char*)words[i].first, post_elt(words[i].second,0));
+  pbbs::sequence<index_elt> KV(word_count, [&] (size_t i) {
+      return index_elt(pbbs::to_sequence(words[i].first),
+		       post_elt(words[i].second,0));
+    });
     
-  inv_index index(KV, KV + word_count);
+  inv_index index(KV);
 
   auto list = [&] (string s) {
-    return index.get_list(const_cast<char*>(s.c_str()));};
+    return index.get_list(pbbs::to_sequence(s));};
 
   post_list apple = list("apple");
   post_list pie = list("pie");
@@ -372,21 +371,20 @@ void test_index() {
   check(pie.size() == 3, "size check for pie");
   check(tasty.size() == 1, "size check for tasty");
     
-  post_list res1 = inv_index::And(apple, pie);
+  post_list res1 = std::move(inv_index::And(apple, pie));
   check(res1.size() == 2, "size check for And query result");
   check(res1.contains(0), "check if query result has document id 0");
   check(res1.contains(2), "check if query result has document id 2");
 
-  post_list res2 = inv_index::Or(tasty, apple);
+  post_list res2 = std::move(inv_index::Or(tasty, apple));
   check(res2.size() == 3, "size check for or query result");
   check(res2.contains(0), "check if or query result has document id 0");
   check(res2.contains(1), "check if or query result has document id 1");
   check(res2.contains(2), "check if or query result has document id 2");
 
-  post_list res3 = inv_index::And_Not(pie, tasty);
+  post_list res3 = std::move(inv_index::And_Not(pie, tasty));
   check(res3.size() == 2, "size check for or query result");
     
-  pbbs::free_array(KV);
 }
 
 void test_intervals() {

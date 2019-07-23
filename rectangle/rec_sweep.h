@@ -34,9 +34,9 @@ void print_out(rec_type e) {
 template<typename T>
 void output_content(T t) {
 	using ent = typename T::E;
-	sequence<ent> out(t.size());
+	pbbs::sequence<ent> out(t.size());
 	cout << t.size() << ": ";
-	T::entries(t, out.as_array());
+	T::entries(t, out.begin());
 	for (int i = 0; i < out.size(); i++) {
 		print_out(out[i]);
 		cout << " ";
@@ -134,7 +134,7 @@ struct RectangleQuery {
     return mid;
   }
 	
-  sequence<rec_type> query_points(const query_type& q) {
+  pbbs::sequence<rec_type> query_points(const query_type& q) {
 	//cout << "query: " << q.x << " " << q.y << endl;
     interval_tree it = xt[get_index(q)];
 	//cout << "it: "; output_content(it);
@@ -145,8 +145,8 @@ struct RectangleQuery {
 	res = interval_tree::aug_filter(res, f);
 	//cout << "res: "; output_content(res);
 	size_t m = res.size();
-	sequence<rec_type> out(m);
-	interval_tree::keys(res, out.as_array());
+	pbbs::sequence<rec_type> out(m);
+	interval_tree::keys(res, out.begin());
     return out;
   }
   

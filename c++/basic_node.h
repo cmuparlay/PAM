@@ -1,5 +1,6 @@
 #pragma once
-#include "pbbslib/list_allocator.h"
+//#include "pbbslib/list_allocator.h"
+#include "pbbslib/alloc.h"
 
 using node_size_t = unsigned int;
 //using node_size_t = size_t;
@@ -19,7 +20,8 @@ struct basic_node {
     node_size_t ref_cnt;
   };
   
-  using allocator = list_allocator<node>;
+  using allocator = pbbs::type_allocator<node>;
+  //using allocator = list_allocator<node>;
 
   static node_size_t size(node* a) {
     return (a == NULL) ? 0 : a->s;
@@ -53,7 +55,7 @@ struct basic_node {
   inline static ET* get_entry_p(node *a) {return &(a->entry);}
   static void set_entry(node *a, ET e) {a->entry = e;}
   static node* left(node a) {return a.lc;}
-  static node* right(node a) {return a.rc;}
+  static node* right(node* a) {return a.rc;}
 };
 
 //template <class E>

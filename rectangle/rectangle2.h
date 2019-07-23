@@ -32,7 +32,7 @@ template<typename T>
 void output_content(T t) {
 	/*
 	using ent = typename T::K;
-	sequence<ent> out(t.size());
+	pbbs::sequence<ent> out(t.size());
 	cout << t.size() << ": ";
 	T::keys(t, out.as_array());
 	for (int i = 0; i < out.size(); i++) {

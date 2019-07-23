@@ -71,7 +71,7 @@ public:
   // aug_map_(E* s, E* e, bool seq_inplace = false) {Map(s,e,seq_inplace);}
   // template<class Bin_Op>
   // aug_map_(E* s, E* e, Bin_Op f) {Map(s,e,f);}
-  // aug_map_(sequence<E> S, bool seq_inplace = false) {Map(S,seq_inplace);}
+  // aug_map_(pbbs::sequence<E> S, bool seq_inplace = false) {Map(S,seq_inplace);}
   // template<class Seq, class Bin_Op>
   // aug_map_(Seq S, Bin_Op f, bool seq_inplace = false) {Map(S,f,seq_inplace);}
   // aug_map_(const M& m) : Map(m) {}
@@ -88,14 +88,14 @@ public:
   static M remove(M m, const K& k) {return Map::remove(std::move(m), k);}
   template<class F>
   static M filter(M m, const F& f) {return Map::filter(std::move(m), f);}
-  static M multi_insert(M m, sequence<E> SS, bool seq_inplace = false) {
+  static M multi_insert(M m, pbbs::sequence<E> SS, bool seq_inplace = false) {
     return Map::multi_insert(std::move(m), SS, seq_inplace);}
   template<class Bin_Op>
-  static M multi_insert_combine(M m, sequence<E> S, Bin_Op f, 
+  static M multi_insert_combine(M m, pbbs::sequence<E> S, Bin_Op f, 
 				bool seq_inplace = false) {
     return Map::multi_insert_combine(std::move(m), S, f, seq_inplace);}
   template<class Val, class Reduce>
-  static M multi_insert_reduce(M m, sequence<pair<K,Val>> S, Reduce g) {
+  static M multi_insert_reduce(M m, pbbs::sequence<pair<K,Val>> S, Reduce g) {
     return Map::multi_insert_reduce(std::move(m), S, g); }
   template<class M1, class M2, class F>
   static M map_intersect(M1 a, M2 b, const F& op) {

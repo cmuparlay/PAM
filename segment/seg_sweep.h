@@ -125,14 +125,14 @@ struct SegmentQuery {
     return mid;
   }
 	
-  sequence<mkey_t> query_points(const query_t& q) {
+  pbbs::sequence<mkey_t> query_points(const query_t& q) {
     seg_map sm = xt[get_index(q)];
     mkey_t left(q.y1,0,0);
     mkey_t right(q.y2,0,0);
     if (q.y1 > q.y2) std::swap(left,right);
     size_t m = sm.rank(right) - sm.rank(left);
-    sequence<mkey_t> out(m);
-    seg_map::keys(seg_map::range(sm, left, right), out.as_array());
+    pbbs::sequence<mkey_t> out(m);
+    seg_map::keys(seg_map::range(sm, left, right), out.begin());
     return out;
   }
 	
