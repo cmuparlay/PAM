@@ -11,7 +11,6 @@
 #include "utils.h"
 #include "tables.h"
 vector<maps> history;
-//maps* x;
 #include "queries.h"
 #include "new_orders.h"
 
@@ -22,8 +21,6 @@ bool if_persistent = false;
 
 double add_new_orders(new_order_entry& no, txn_info& ti) {
 	timer t; t.start();
-	//maps m;
-	//m = (*x);
 	maps m = history[history.size()-1];
 	customer_map cm = m.cm;
 	int num = no.num_items;
@@ -47,8 +44,8 @@ double add_new_orders(new_order_entry& no, txn_info& ti) {
 		};
 		cm.update(no.o.custkey, f);
 
-		//update om
-		//om.insert(oe);
+		update om
+		om.insert(oe);
 	}
 	
 	
@@ -103,14 +100,11 @@ double add_new_orders(new_order_entry& no, txn_info& ti) {
 	nm.version = history.size();
 	
 	history.push_back(nm);
-	//x = &(history[history.size()-1]);
 	double ret_tm = t.stop();
 	return ret_tm;
 }
 
 double payment(payment_entry& pay, txn_info& ti) {
-	//maps m;
-	//m = (*x);
 	maps m = history[history.size()-1];
 	timer t; t.start();
 	customer_map cm = m.cm;
@@ -124,13 +118,10 @@ double payment(payment_entry& pay, txn_info& ti) {
 	nm.version = history.size();
 	
 	history.push_back(nm);
-	//x = &(history[history.size()-1]);
 	return t.stop();
 }
 
 double shipment(shipment_entry& ship, txn_info& ti) {
-	//maps m;
-	//m = (*x);
 	maps m = history[history.size()-1];
 	timer t; t.start();
 	customer_map cm = m.cm;
@@ -143,111 +134,103 @@ double shipment(shipment_entry& ship, txn_info& ti) {
 	supp_to_part_map spm = m.spm2;
 	o_order_map oom = m.oom;
 
-	for (int rd = 0; rd < 3; rd++) {
-		if (rd==0) {
-			//update customers
-			for (size_t i = ti.start; i<ti.start+ship.num; i++) {
-				if (i>=ti.new_order_q.size()) break;
-				pair<dkey_t, dkey_t> cokey = ti.new_order_q[i];
-				dkey_t custkey = cokey.first, orderkey = cokey.second;
-				float money = 0.0;		
-				auto f = [&] (customer_map::E e) {
-					order_map omf = e.second.second;
-					auto f2 = [&] (order_map::E e) {
-						li_map lm = e.second.second;
-						li_list[i-ti.start] = lm;
-						money = e.second.first.totalprice;
-						odate_key[i-ti.start] = e.second.first.orderdate;
-						auto f3 = [&] (li_map::E e) {
-							//update lineitem's shipdate
-							e.s_date = now;
-							e.set_linestatus();
-							//insert into ship_map
-							sm = ship_map::insert(sm, make_pair(now, e));
-							return e;
-						};
-						e.second.second = li_map::map_set(lm, f3);
-						return e.second;
-					};
-					//increase customer's balance
-					e.second.first.acctbal += money;
-					omf.update(orderkey, f2);
-					e.second.second = omf;
-					return e.second;
-				};
-				cm.update(custkey, f);
-			}
-		}
-		
-		if (rd == 1) {
-			//update parts and supps
-			for (size_t i = ti.start; i<ti.start+ship.num; i++) {
-				if (i>=ti.new_order_q.size()) break;
-				li_map lm = li_list[i-ti.start];
-				shipped_lineitem += lm.size();
-				auto ff = [&] (li_map::E e, size_t i) {
+	//update customers
+	for (size_t i = ti.start; i<ti.start+ship.num; i++) {
+		if (i>=ti.new_order_q.size()) break;
+		pair<dkey_t, dkey_t> cokey = ti.new_order_q[i];
+		dkey_t custkey = cokey.first, orderkey = cokey.second;
+		float money = 0.0;		
+		auto f = [&] (customer_map::E e) {
+			order_map omf = e.second.second;
+			auto f2 = [&] (order_map::E e) {
+				li_map lm = e.second.second;
+				li_list[i-ti.start] = lm;
+				money = e.second.first.totalprice;
+				odate_key[i-ti.start] = e.second.first.orderdate;
+				auto f3 = [&] (li_map::E e) {
+					//update lineitem's shipdate
 					e.s_date = now;
 					e.set_linestatus();
-					dkey_t suppk = e.suppkey;
-					dkey_t partk = e.partkey;
-					//update supp->part->lineitem
-					{
-						auto f = [&] (supp_to_part_map::E& ee) {
-							auto g = [&] (part_supp_and_item_map::E& e2) {
-								li_map lm = li_map::insert(e2.second.second, e);
-								return make_pair(e2.second.first, lm);
-							};
-							part_supp_and_item_map t1 = part_supp_and_item_map::update(ee.second.second, make_pair(partk,suppk), g);	
-							return make_pair(ee.second.first, t1);
-						};
-						spm.update(suppk, f);
-					}
-
-					
-					//update part->supp->lineitem
-					{
-						auto f = [&] (part_to_supp_map::E& ee) {
-							auto g = [&] (part_supp_and_item_map::E& e2) {
-								li_map lm = li_map::insert(e2.second.second, e);
-								return make_pair(e2.second.first, lm);
-							};
-							part_supp_and_item_map t1 = part_supp_and_item_map::update(ee.second.second, make_pair(partk, suppk), g);	
-							return make_pair(ee.second.first, t1);
-						};
-						psm.update(partk, f);
-					}
-					
+					//insert into ship_map
+					sm = ship_map::insert(sm, make_pair(now, e));
+					return e;
 				};
-				li_map::map_index(lm, ff);
-			}
-		}
+				e.second.second = li_map::map_set(lm, f3);
+				return e.second;
+			};
+			//increase customer's balance
+			e.second.first.acctbal += money;
+			omf.update(orderkey, f2);
+			e.second.second = omf;
+			return e.second;
+		};
+		cm.update(custkey, f);
+	}
 		
-		if (rd==2) {
-			//update odate
-			for (size_t i = ti.start; i<ti.start+ship.num; i++) {
-				if (i>=ti.new_order_q.size()) break;
-				pair<dkey_t, dkey_t> cokey = ti.new_order_q[i];
-				dkey_t orderkey = cokey.second;
-				Date dt = odate_key[i-ti.start];
-				auto f = [&] (o_order_map::E e) {
-					order_map om = e.second;
-					auto f2 = [&] (order_map::E e) {
-						li_map lm = e.second.second;
-						li_list[i-ti.start] = lm;
-						auto f3 = [&] (li_map::E e) {
-							//update lineitem's shipdate
-							e.s_date = now;
-							return e;
-						};
-						e.second.second = li_map::map_set(lm, f3);
-						return e.second;
+	//update parts and supps
+	for (size_t i = ti.start; i<ti.start+ship.num; i++) {
+		if (i>=ti.new_order_q.size()) break;
+		li_map lm = li_list[i-ti.start];
+		shipped_lineitem += lm.size();
+		auto ff = [&] (li_map::E e, size_t i) {
+			e.s_date = now;
+			e.set_linestatus();
+			dkey_t suppk = e.suppkey;
+			dkey_t partk = e.partkey;
+			//update supp->part->lineitem
+			{
+				auto f = [&] (supp_to_part_map::E& ee) {
+					auto g = [&] (part_supp_and_item_map::E& e2) {
+						li_map lm = li_map::insert(e2.second.second, e);
+						return make_pair(e2.second.first, lm);
 					};
-					om.update(orderkey, f2);
-					return om;
+					part_supp_and_item_map t1 = part_supp_and_item_map::update(ee.second.second, make_pair(partk,suppk), g);	
+					return make_pair(ee.second.first, t1);
 				};
-				oom.update(dt, f);
+				spm.update(suppk, f);
 			}
-		}	
+
+			
+			//update part->supp->lineitem
+			{
+				auto f = [&] (part_to_supp_map::E& ee) {
+					auto g = [&] (part_supp_and_item_map::E& e2) {
+						li_map lm = li_map::insert(e2.second.second, e);
+						return make_pair(e2.second.first, lm);
+					};
+					part_supp_and_item_map t1 = part_supp_and_item_map::update(ee.second.second, make_pair(partk, suppk), g);	
+					return make_pair(ee.second.first, t1);
+				};
+				psm.update(partk, f);
+			}
+			
+		};
+		li_map::map_index(lm, ff);
+	}
+		
+	//update odate
+	for (size_t i = ti.start; i<ti.start+ship.num; i++) {
+		if (i>=ti.new_order_q.size()) break;
+		pair<dkey_t, dkey_t> cokey = ti.new_order_q[i];
+		dkey_t orderkey = cokey.second;
+		Date dt = odate_key[i-ti.start];
+		auto f = [&] (o_order_map::E e) {
+			order_map om = e.second;
+			auto f2 = [&] (order_map::E e) {
+				li_map lm = e.second.second;
+				li_list[i-ti.start] = lm;
+				auto f3 = [&] (li_map::E e) {
+					//update lineitem's shipdate
+					e.s_date = now;
+					return e;
+				};
+				e.second.second = li_map::map_set(lm, f3);
+				return e.second;
+			};
+			om.update(orderkey, f2);
+			return om;
+		};
+		oom.update(dt, f);
 	}
 	
 	ti.start += ship.num;
@@ -260,7 +243,6 @@ double shipment(shipment_entry& ship, txn_info& ti) {
 	nm.version = history.size();
 	
 	history.push_back(nm);
-	//x = &(history[history.size()-1]);
 	delete[] li_list;
 	delete[] odate_key;
 	return t.stop();
@@ -283,20 +265,6 @@ pair<double, double> geo_mean(double* x, int round) {
 	dev = exp2(sqrt(m/(round+0.0)));
 	return make_pair(res, dev);
 }
-
-void collect_version(int i) {
-	//if (i<0) return;
-	return;
-	//cout << i << " " << working_version << endl;
-	history[i].clear();
-	size_t t = li_map::GC::used_node();
-	if (t > max_lineitem) max_lineitem = t;
-	t = part_supp_and_item_map::GC::used_node();
-	if (t > max_part_supp) max_part_supp = t;
-	t = part_to_supp_map::GC::used_node();
-	if (t > max_part) max_part = t;
-}
-	
 
 void output_new_order(new_order_entry t, ofstream& myfile) {
 	myfile << "N|" << t.num_items << 
@@ -328,12 +296,8 @@ void output_shipment(shipment_entry t, ofstream& myfile) {
 	
 
 double exe_txns(transaction* txns, int num_txns, txn_info& ti, bool verbose) {
-	//if (verbose) nextTime("start new orders");
 	cout << "start transactions" << endl;
 	int numn = 0, nump = 0, nums = 0;
-	//maps m = (*x);
-	//history.push_back(m);
-	//maps m = history[history.size()-1];
 	double* n_timer = new double[num_txns];
 	double* p_timer = new double[num_txns];
 	double* s_timer = new double[num_txns];
@@ -364,9 +328,7 @@ double exe_txns(transaction* txns, int num_txns, txn_info& ti, bool verbose) {
 		  if (if_persistent) output_shipment(ti.shipments[i], myfile);
 		  s_timer[nums++] = t; 
 	  }
-	  //cout << history.size() << " " << keep_versions << endl;
 	  if (if_collect && (history.size() >= keep_versions)) history[history.size()-keep_versions].clear();
-	  //cout << mm.cm.size() << endl;
 	  size_t t = li_map::GC::used_node();
 	  if (t > max_lineitem) max_lineitem = t;
 	  t = part_supp_and_item_map::GC::used_node();
@@ -432,11 +394,10 @@ void post_process(double** tm, int round) {
 void test_all(bool verbose, bool if_query, bool if_update,
 	      int scale, int num_txns, string data_directory) {
    
-  //maps m = make_maps(data_directory, verbose);
   history.push_back(make_maps(data_directory, verbose));
   memory_stats();
-  //x = &m;
   if (verbose) nextTime("gc for make maps");
+  
   //prepare txns
   txn_info ti;
    
@@ -477,7 +438,7 @@ void test_all(bool verbose, bool if_query, bool if_update,
       for (int i = 0; i < queries; i++) {
           tm[i] = new double[100];
       }
-	  //memory_stats();
+	  memory_stats();
       nextTime("ready");
 
       par_do([&] () {exe_txns(txns, num_txns, ti, verbose);},
@@ -490,7 +451,6 @@ void test_all(bool verbose, bool if_query, bool if_update,
 	  cout << "shipped: " << shipped_lineitem << endl;
   } else {
     if (if_query) {
-        //query_out = true;
         double** tm; int round = 0;
         tm = new double*[queries];
         for (int i = 0; i < queries; i++) {
@@ -518,7 +478,6 @@ int main(int argc, char** argv) {
   if (scale == 100) default_directory = "/ssd1/tpch/S100/";
   if (scale == 1) default_directory = "/ssd1/tpch/S1/";
    
-  //string default_directory = "../../tpch-dbgen-master/";
   string data_directory = P.getOptionValue("-d", default_directory);
 
   test_all(verbose, if_query, if_update,

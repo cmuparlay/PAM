@@ -4,7 +4,7 @@ PAM (Parallel Augmented Maps) is a parallel C++ library implementing the interfa
 
 PAM also implements another implementation of augmented maps, which is the prefix structure [3]. It is used for parallel sweepline algorithms for computational geometry problems.
 
-This repository also contains examples of using PAM for a variety of applications, including range sum, 1D stabbing queries, 2D range queries, 2D segment queries, 2D rectangle queries, inverted index searching, implementing an HTAP database benchmark combining TPC-H  queries and TPC-C transactions [5], version maintenance in single-writer transactional memory, etc.
+This repository also contains examples of using PAM for a variety of applications, including range sum, 1D stabbing queries, 2D range queries, 2D segment queries, 2D rectangle queries, inverted index searching, implementing an HTAP database benchmark combining TPC-H  queries and TPC-C transactions [5], MVCC transactional system with precise GC, etc. Detailed descriptions of the algorithms and applications can be found in our previous papers [1,2,3,4] and the tutorial in PPoPP 2019 [6].
 
 PAM uses the PBBS library (https://github.com/cmuparlay/pbbslib) as subroutines for parallel operations, including sorting, scan, the scheduler, etc. To access the PAM libaray, you can use:
 
@@ -39,13 +39,6 @@ Then an augmented map is defined with C++ template as
 augmented_map<entry>.
 ```
 
-Note that a plain ordered map is defined as an augmented map with no augmentation (i.e., it only has K, <_K and V in its entry) and a plain ordered set is similarly defined as an augmented map with no augmentation and no value type.
-
-```
-pam_map<entry>
-pam_set<entry>
-```
-
 Here is an example of defining an augmented map "m" that has integer keys and values and is augmented with value sums (similar as the augmented sum example in our paper [1]):
 
 ```
@@ -64,7 +57,28 @@ struct entry {
 augmented_map<entry> m;
 ```
 
-Another quick example can be found in [2], which shows how to implement an interval tree using the PAM interface.
+Note that a plain ordered map is defined as an augmented map with no augmentation (i.e., it only has K, <_K and V in its entry) and a plain ordered set is similarly defined as an augmented map with no augmentation and no value type.
+
+```
+pam_map<entry>
+pam_set<entry>
+```
+
+To declare a simple key-value map, here's a quick example:
+
+```
+struct entry {
+  using key_t = int;
+  using val_t = int;
+  static bool comp(key_t a, key_t b) { 
+    return a < b;}
+};
+pam_map<entry> m;
+```
+
+Another example can be found in [2], which shows how to implement an interval tree using the PAM interface.
+
+Keys, values and augmented values and be of any arbitrary types, even an another augmented_map (tree) structure. 
 
 ## Hardware dependencies
 
@@ -76,7 +90,7 @@ PAM requires g++ 5.4.0 or later versions supporting the Cilk Plus extensions.   
 We use python to write scripts to organize all results and compute speedup. It is not required to run tests.
 
 ## Applications:
-In the sub-directories, we show code for a number of applications. They are all concise based on PAM, which need about 100 lines of code each.  All tests include parallel and sequential running times.  The sequential versions are the algorithms running directly on one thread, and the parallel versions use all threads on the machine using "numactl -i all".
+In the sub-directories, we show code for a number of applications. They are all concise based on PAM, most of which need about 100 lines of code each.  All tests include parallel and sequential running times.  The sequential versions are the algorithms running directly on one thread, and the parallel versions use all threads on the machine using "numactl -i all".
 
 In each of the directories there is a separated readme, makefile and a script to run the timings for the corresponding application.
 
@@ -104,16 +118,18 @@ In directory index/. More details about the algorithm and results can be found i
 ### Version maintenance for transactional memories
 To be updated. More details about the algorithm and results can be found in our paper [4]. 
 
-### An HTAP database system
-To be updated. 
+### Implementing an HTAP database system: TPC benchmark testing [5]
+In directory tpch/. Our code builds indexes for TPC-H workload, which supports all 22 TPC-H analytical queries, and 3 types of TPC-C-style update transactions. 
 
 ## Reference
-[1] Yihan Sun, Daniel Ferizovic, and Guy E. Blelloch. Parallel Ordered Sets Using Just Join. SPAA 2016. 
+[1] Guy E. Blelloch, Daniel Ferizovic, and Yihan Sun. Parallel Ordered Sets Using Just Join. SPAA 2016 (also, arXiv:arXiv:1602.02120. 
 
 [2] Yihan Sun, Daniel Ferizovic, and Guy E. Blelloch. PAM: Parallel Augmented Maps. PPoPP 2018. 
 
-[3] Yihan Sun and Guy Blelloch. Parallel Range, Segment and Rectangle Queries with Augmented Maps. ALENEX 2019 (also, ArXiv:1803.08621).
+[3] Yihan Sun and Guy Blelloch. Parallel Range, Segment and Rectangle Queries with Augmented Maps. ALENEX 2019 (also, arXiv:1803.08621).
 
-[4] Naama Ben-David, Guy E. Blelloch, Yihan Sun and Yuanhao Wei. Multiversion Concurrency with Bounded Delay and Precise Garbage Collection. SPAA 2019 (also, ArXiv:1803.08617).
+[4] Naama Ben-David, Guy E. Blelloch, Yihan Sun and Yuanhao Wei. Multiversion Concurrency with Bounded Delay and Precise Garbage Collection. SPAA 2019 (also, arXiv:1803.08617).
 
 [5] TPC benchmarks. http://www.tpc.org/
+
+[6] Yihan Sun and Guy Blelloch. 2019. Implementing parallel and concurrent tree structures. Tutorial in PPoPP 2019.

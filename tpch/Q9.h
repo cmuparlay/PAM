@@ -58,7 +58,6 @@ Q9_rtype Q9(maps mx, const char* color) {
   part_to_supp_map& psm = m.psm2;
   using Add = Add_Nested_Array<nat_years>;
   nat_years a = ps_map::semi_map_reduce(psm, part_f, Add(), 4000);
-  //cout << a[6][0] << endl;
   
   auto gen_results = [&] (size_t i) -> Q9_elt {
     int nationkey = i/num_years;

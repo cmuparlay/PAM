@@ -90,7 +90,6 @@ void memory_stats() {
   ship_map::GC::print_stats();
   cout << "receiptdate map:" << endl;
   receipt_map::GC::print_stats();
-  //supp_part_map::GC::print_stats();
   cout << "partsupp and item map:" << endl;
   part_supp_and_item_map::GC::print_stats();
   cout << "part map:" << endl;
@@ -103,7 +102,6 @@ struct arrays_and_temps {
   Supplier* all_supp;
   Part* all_part;
   part_supp_map psm;
-  //li_map lm;
 } static_data;
 
 maps make_maps(string dirname, bool verbose) {

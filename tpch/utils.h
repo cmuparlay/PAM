@@ -336,29 +336,6 @@ void histogram(int* a, int start, int end, priority_map& x) {
 }
 
 
-// int subtring(char* x, string y, int l) {
-// 	//int big_prime = 78710299;
-// 	for (int i = 0; i < 80-l-1; i++) {
-// 		if (x[i]=='\0') return false;
-// 		bool flag = true;
-// 		for (int j = 0; j < l; j++) {
-// 			if (x[i+j] == '\0') return false;
-// 			if (x[i+j] != y[j]) {
-// 				flag = false;
-// 				break;
-// 			}
-// 		}
-// 		if (flag) return true;
-// 	}
-// 	return false;
-// }
-
-// bool q13_substring(char* x) {
-// 	int idx1 = subtring(x, "special", 7);
-// 	int idx2 = subtring(x, "requests", 8);
-// 	if (idx1 < idx2) return true;
-// }
-
 int random_hash(int seed, int a, int rangeL, int rangeR) {
   if (rangeL == rangeR) return rangeL;
   a = (a+seed) + (seed<<7);

@@ -1,8 +1,7 @@
-//#include <atomic>
 bool query_out = false;
 std::atomic<bool> finish(false);
 int queries = 22;
-int rpt = 5;//10;
+int rpt = 5;
 #include <string.h>
 #include "pbbslib/hash_table.h"
 #include "Q1.h"
@@ -28,21 +27,6 @@ int rpt = 5;//10;
 #include "Q21.h"
 #include "Q22.h"
 
-
-/*
-void TimeCustomer(maps m) {
-  struct red {
-    using t = float;
-    static t from_entry(customer_map::E& c) { return 1.0;}
-    static t combine(t a, t b) { return a+b;}
-    static t identity() {return 0.0;}
-  };
-
-  float r = customer_map::map_reduce(m.cm, red());
-  cout << r << endl;
-  nextTime("Time reduce customer");
-}
-*/
 
 size_t max_lineitem = 0;
 size_t max_order = 0;
@@ -78,106 +62,76 @@ void exe_query(bool verbose, double** tm, int& round, int rpt = 0) {
   std::cout.precision(4);
   cout << fixed;
   
-  //q10_ret_map::reserve(500000);
   while (true) {
 	  if (finish) break;
 	  maps m2; 
 	  
 	  working_version = history.size()-1; 
-	  //cout << "Q22 on " << working_version << endl;
 	  m2 = history[working_version];
-	  //cout << "Q22 on " << working_version << endl;
 	  tm[0][round] = Q22time(m2, verbose);
-	  collect_history();
 
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //cout << "Q1 on " << working_version << endl;
 	  tm[1][round] = Q1time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //cout << "Q2 on " << working_version << endl;
 	  tm[2][round] = Q2time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //cout << "Q3 on " << working_version << endl;
 	  tm[3][round] = Q3time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //cout << "Q4 on " << working_version << endl;
 	  tm[4][round] = Q4time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //cout << "Q5 on " << working_version << endl;
 	  tm[5][round] = Q5time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[6][round] = Q6time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[7][round] = Q7time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[8][round] = Q8time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[9][round] = Q9time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[10][round] = Q10time(m2, verbose); 
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[11][round] = Q11time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[12][round] = Q12time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[13][round] = Q13time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[14][round] = Q14time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[15][round] = Q15time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[16][round] = Q16time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[17][round] = Q17time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[18][round] = Q18time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[19][round] = Q19time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[20][round] = Q20time(m2, verbose);
-	  collect_history();
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
 	  tm[21][round] = Q21time(m2, verbose);
-	  collect_history();
 	  round++;
 	  if (rpt > 0 && round > rpt) break;
   }

@@ -1,12 +1,5 @@
 #include "pbbslib/strings/string_basics.h"
-// #include "pbbslib/list_allocator.h"
 #include <string.h>
-
-// struct part_str {char s[185];};
-// using part_str_pool = list_allocator<part_str>;
-
-// struct cust_str {char s[192];};
-// using cust_str_pool = list_allocator<cust_str>;
 
 void copy_string(char* dest, char* src, size_t max_len) {
   if (strlen(src) > max_len) {
