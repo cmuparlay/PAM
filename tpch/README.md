@@ -42,6 +42,8 @@ To directly run the executable files, one can try:
 
 * -p: the '-p' option decides if persistence is enabled. If so, it writes the executed transactions as logs to the disk. 
 
+* -d directory: the '-d' option specifies the path to the input file (all tables). 
+
 
 The input tables in TPC-H can be generated using tpch-dbgen (https://github.com/electrum/tpch-dbgen). After getting the input tables, simply put them in the same directory and pass the directory path as the "-d" parameter. Our code outputs the geometric mean of running time across five runs for each query, as well as the geometric mean of all 22 queries. This is the performance measurement suggested by the TPC-H specification. 
 
