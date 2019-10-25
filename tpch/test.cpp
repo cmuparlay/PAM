@@ -44,7 +44,7 @@ double add_new_orders(new_order_entry& no, txn_info& ti) {
 		};
 		cm.update(no.o.custkey, f);
 
-		update om
+		//update om
 		om.insert(oe);
 	}
 	
