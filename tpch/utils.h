@@ -317,7 +317,7 @@ struct priority_map {
   }
 };
 
-auto add_pri_map = [&] (priority_map a, priority_map b) -> priority_map {
+auto add_pri_map = [] (priority_map a, priority_map b) -> priority_map {
 	priority_map ret;
 	for (int i = 1; i < 6; i++) ret.a[i] = a.a[i]+b.a[i];
 	return ret;
