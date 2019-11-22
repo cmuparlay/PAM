@@ -299,7 +299,7 @@ maps make_maps(string dirname, bool verbose) {
   return m;
 }
 
-auto revenue = [&] (li_map::E& l) -> float {
+auto revenue = [] (li_map::E& l) -> float {
   return l.e_price * (1.0 - l.discount.val());
 };
 
