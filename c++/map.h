@@ -166,7 +166,7 @@ public:
     Tree::foreach_index(m.get_root(), 0, f);
   }
   
-  // flatten all keys to an array
+  //flatten all keys to an array
   template <class outItter>
   static void keys(M m, outItter out) {
     if (m.size() > 1000) {
@@ -176,6 +176,16 @@ public:
       auto g = [&] (E& e) {*out = Entry::get_key(e); ++out;};
       Tree::foreach_seq(m.get_root(), g);
     }
+  }
+  
+  static pbbs::sequence<K> keys(M m, size_t granularity=utils::node_limit) {
+    auto f = [] (E e) -> K {return Entry::get_key(e);};
+    return to_seq<K>(m, f, granularity);
+  }
+  
+   static void keys_to_array(M m, K* out) {
+    auto f = [&] (E& e, size_t i) {out[i] = Entry::get_key(e);};
+    Tree::foreach_index(m.get_root(), 0, f);
   }
   
   bool operator != (const M& m) const { return !(*this == m); }
@@ -239,12 +249,9 @@ public:
   static M multi_insert(M m, Seq const &SS,
 			bool seq_inplace = false, bool inplace = false) {
     auto replace = [] (const V& a, const V& b) {return b;};
-    //cout << "halli3" << endl;
     pbbs::sequence<E> A = Build::sort_remove_duplicates(SS, seq_inplace, inplace);
-    //cout << "halli4" << endl;
     auto x = M(Tree::multi_insert_sorted(m.get_root(), A.begin(),
 					 A.size(), replace));
-    //cout << "halli5" << endl;
     return x;
   }
   
@@ -358,7 +365,13 @@ public:
   // basic search routines
   maybe_V find(const K& key) const {
     return node_to_val(Tree::find(root, key));}
-	
+
+  // returns default value if not found
+  V find(const K& key, V defaultv) const {
+    node* a = Tree::find(root, key);
+    return (a != NULL) ? Entry::get_val(Tree::get_entry(a)) : defaultv;
+  }
+    
   bool contains(const K& key) const {
     return (Tree::find(root, key) != NULL) ? true : false;}
 
@@ -377,6 +390,9 @@ public:
 
   maybe_E last() const { return select(size()-1); }
 
+  M take(const size_t k) {
+    return M(Tree::take(root, k));}
+  
   template<class F>
   static M map_union(M a, M b, const F& op, bool extra = false) {
     return M(Tree::uniont(a.get_root(), b.get_root(), op, extra));

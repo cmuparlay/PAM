@@ -46,6 +46,16 @@ struct sequence_ops : Tree {
     }
     return NULL;
   }
+
+  static node* take(node* b, size_t rank) {
+    if (!b) return NULL;
+    size_t left_size = Tree::size(b->lc);
+    if (rank < left_size) return take(b->lc, rank);
+    node* join = Tree::make_node(Tree::get_entry(b));
+    node* r = take(b->rc, rank - left_size - 1);
+    GC::increment(b->lc);
+    return Tree::node_join(b->lc, r, join);
+  }
   
   static node* join2_i(node* b1, node* b2, bool extra_b1, bool extra_b2) {
     if (!b1) return GC::inc_if(b2, extra_b2);
@@ -142,6 +152,7 @@ struct sequence_ops : Tree {
   
   // Assumes the input is sorted and there are no duplicate keys
   static node* from_array(ET* A, size_t n) {
+	  //cout << "from_array: " << n << endl;
     if (n <= 0) return Tree::empty();
     if (n == 1) return Tree::single(A[0]);
     size_t mid = n/2;

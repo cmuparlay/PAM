@@ -113,6 +113,10 @@ public:
   static void entries(M m, E* out) { Map::entries(std::move(m),out);}
   template <class outItter>
   static void keys(M m, outItter out) {Map::keys(std::move(m),out);}
+  static void keys_to_array(M m, K* out) {Map::keys_to_array(std::move(m),out);}
+  static pbbs::sequence<K> keys(M m, size_t granularity=utils::node_limit) {
+	  return Map::keys(m, granularity);
+  }
   // maybe_V find(const K& k) {return Map::find(k);}
   // bool contains(const K& k) {return Map::contains(k);}
   // maybe_E next(const K& k) {return Map::next(k);}

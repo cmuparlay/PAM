@@ -14,7 +14,7 @@ struct gc {
   static void init() { alloc::init();}
   static bool initialized() { return alloc::initialized;}
   static void reserve(size_t n, bool randomize = false) {
-    alloc::reserve(n, randomize);}
+    alloc::reserve(n);}
   static void finish() { alloc::finish();}
   static size_t num_used_nodes() {return alloc::num_used_blocks();}
 

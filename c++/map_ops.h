@@ -436,17 +436,46 @@ struct map_ops : Seq {
       return o;
     }
   }
+  template <typename F>
+  static size_t PAM_linear_search(ET* A, size_t size, const F& less) {
+    for (size_t i = 0; i < size; i++)
+      if (!less(A[i])) return i;
+    return size;
+  }
+  
+  template <typename F>
+  static size_t PAM_binary_search(ET* A, size_t n, const F& less) {
+    size_t start = 0;
+    size_t end = n;
+    while (end-start > pbbs::_binary_search_base) {
+      size_t mid = (end+start)/2;
+      if (!less(A[mid])) end = mid;
+      else start = mid + 1;
+    }
+    size_t x = start + PAM_linear_search(A+start, end-start, less);
+	return x;
+  }
 
   // assumes array A is of length n and is sorted with no duplicates
   template <class BinaryOp>
   static node* multi_insert_sorted(node* b, ET* A, size_t n,
 				   const BinaryOp& op, bool extra_ptr = false) {
-    if (!b) return Seq::from_array(A,n);
+    if (!b) {
+		node* x = Seq::from_array(A,n);
+		return x;
+	}
     if (n == 0) return GC::inc_if(b, extra_ptr);
+
     bool copy = extra_ptr || (b->ref_cnt > 1);
     K bk = get_key(b);
+
     auto less_val = [&] (ET& a) -> bool {return Entry::comp(Entry::get_key(a),bk);};
-    size_t mid = pbbs::binary_search(pbbs::sequence<ET>(A, n), less_val);
+
+	//pbbs::sequence<ET> stemp(A, n);
+
+    //size_t mid = pbbs::binary_search(stemp, less_val);
+	size_t mid = PAM_binary_search(A, n, less_val);
+	
     bool dup = (mid < n) && (!Entry::comp(bk, Entry::get_key(A[mid])));
 	  
     auto P = utils::fork<node*>(utils::do_parallel(Seq::size(b), n),
@@ -462,7 +491,7 @@ struct map_ops : Seq {
   template <class VE, class BinaryOp>
   static node* multi_update_sorted(node* b, std::pair<K, VE>* A, size_t n,
 				   const BinaryOp& op, bool extra_ptr = false) {
-    if (!b) return NULL;
+	if (!b) return NULL;
     if (n == 0) return GC::inc_if(b, extra_ptr);
     bool copy = extra_ptr || (b->ref_cnt > 1);
     K bk = get_key(b);
