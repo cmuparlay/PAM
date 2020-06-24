@@ -243,6 +243,30 @@ public:
 	delete indicator;
 	return ans;
   }
+  
+  // insert multiple keys from an array
+  template<class Seq>
+  static M multi_delete(M m, Seq const &SS,
+			bool seq_inplace = false, bool inplace = false) {
+				
+    using EE = typename Seq::value_type;
+      
+    struct e_type {
+      using entry_t = EE;
+      using key_t = EE;
+      using val_t = bool;
+      static bool comp(const key_t& a, const key_t& b) {return a<b;}
+      static inline key_t get_key(const entry_t& e) {return e;}
+      static inline val_t get_val(const entry_t& e) {return false;}
+    };
+		
+    using BD = build<e_type>;
+    pbbs::sequence<K> A = BD::sort_remove_duplicates(SS);
+	
+    //pbbs::sequence<K> A = Build::sort_remove_duplicates(SS, seq_inplace, inplace);
+    auto x = M(Tree::multi_delete_sorted(m.get_root(), A.begin(), A.size()));
+    return x;
+  }
     
   // insert multiple keys from an array
   template<class Seq>
@@ -508,6 +532,10 @@ public:
   maybe_E node_to_entry(node* a) const {
     if (a != NULL) return maybe_E(Tree::get_entry(a));
     else return maybe_E();
+  }
+  
+  bool check_balance() {
+	  return Seq_Tree::check_balance(root);
   }
 
 };

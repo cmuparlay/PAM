@@ -24,15 +24,15 @@ struct build {
 	if (less(A[j-1], A[i])) A[j++] = A[i];
       return A.slice(0,j);
     } else {
-      //cout << "hlkl" << endl;
+    
       if (!inplace) {
-	//cout << "hlklx" << endl;
+	
 	auto B = pbbs::sample_sort(A, less);
-	//cout << "hlkl2" << endl;
+	
 	auto Fl = pbbs::dseq(B.size(), [&] (size_t i) {
 	    return (i==0) || less(B[i-1], B[i]); });
 	auto C = pbbs::pack(B, Fl);
-	//cout << "hlkl3" << endl;
+	
 	return C;
       } else {
 	pbbs::sample_sort_inplace(A.slice(), less);

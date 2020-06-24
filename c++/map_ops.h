@@ -118,6 +118,7 @@ struct map_ops : Seq {
   static split_info split_inplace(node* bst, const K& e) {
     if (!bst) return split_info(NULL, NULL, false);
     else if (bst->ref_cnt > 1) {
+		//std::cout << "rc>1" << std::endl;
       split_info ret = split_copy(bst, e);
       GC::decrement_recursive(bst);
       return ret;
@@ -159,6 +160,20 @@ struct map_ops : Seq {
     Entry::set_val(re, op(Entry::get_val(re), v0));
     Seq::set_entry(a, re);
   }
+  
+  //valid only if key type is printable
+  static void output_r(node* t) {
+	  if (!t) return;
+	  output_r(t->lc);
+	  std::cout << get_key(t) << " ";
+	  output_r(t->rc);
+  }
+  
+  //valid only if key type is printable  
+  static void output(node* t) {
+	  output_r(t);
+	  std::cout << std::endl;
+  }
 
   // Works in-place when possible.
   // extra_b2 means there is an extra pointer to b2 not included
@@ -169,10 +184,20 @@ struct map_ops : Seq {
 		      bool extra_b2 = false) {
     if (!b1) return GC::inc_if(b2, extra_b2);
     if (!b2) return b1;
+	
+	//std::cout << "t1: "; output(b1);
+	//std::cout << "t2: "; output(b2);
+	//std::cout << std::endl;
+	
+	//std::cout << "split t1 by " << get_key(b2) << std::endl;
     size_t n1 = Seq::size(b1);   size_t n2 = Seq::size(b2);
     bool copy = extra_b2 || (b2->ref_cnt > 1);
     node* r = copy ? Seq::make_node(Seq::get_entry(b2)) : b2;
     split_info bsts = split(b1, get_key(b2));
+		
+	//std::cout << "into:" << std::endl; 
+	//output(bsts.first); 
+	//output(bsts.second);
 
     auto P = utils::fork<node*>(utils::do_parallel(n1, n2),
       [&] () {return uniont(bsts.first, b2->lc, op, copy);},
@@ -180,6 +205,7 @@ struct map_ops : Seq {
 
     if (copy && !extra_b2) GC::decrement_recursive(b2);
     if (bsts.removed) combine_values(r, bsts.entry, true, op);
+	//std::cout << std::endl;
     return Seq::node_join(P.first, P.second, r);
   }
 
@@ -188,6 +214,7 @@ struct map_ops : Seq {
   static node* intersect(typename Seq1::node* b1, typename Seq2::node* b2,
 			 const BinaryOp& op,
 			 bool extra_b2 = false) {
+	//std::cout << "size: " << n1 << " " << n2 << std::endl;
     if (!b1) {if (!extra_b2) Seq2::GC::decrement_recursive(b2); return NULL;}
     if (!b2) {Seq1::GC::decrement_recursive(b1); return NULL;}
     size_t n1 = Seq1::size(b1);   size_t n2 = Seq2::size(b2);
@@ -436,15 +463,15 @@ struct map_ops : Seq {
       return o;
     }
   }
-  template <typename F>
-  static size_t PAM_linear_search(ET* A, size_t size, const F& less) {
+  template <typename F, typename AT>
+  static size_t PAM_linear_search(AT* A, size_t size, const F& less) {
     for (size_t i = 0; i < size; i++)
       if (!less(A[i])) return i;
     return size;
   }
   
-  template <typename F>
-  static size_t PAM_binary_search(ET* A, size_t n, const F& less) {
+  template <typename F, typename AT>
+  static size_t PAM_binary_search(AT* A, size_t n, const F& less) {
     size_t start = 0;
     size_t end = n;
     while (end-start > pbbs::_binary_search_base) {
@@ -454,6 +481,40 @@ struct map_ops : Seq {
     }
     size_t x = start + PAM_linear_search(A+start, end-start, less);
 	return x;
+  }
+  
+  static node* multi_delete_sorted(node* b, K* A, size_t n,
+				   bool extra_ptr = false) {
+    if (!b) {
+		return NULL;
+	}
+    if (n == 0) return GC::inc_if(b, extra_ptr);
+
+    bool copy = extra_ptr || (b->ref_cnt > 1);
+    K bk = get_key(b);
+
+    auto less_val = [&] (K& a) -> bool {return Entry::comp(a,bk);};
+
+	//---
+	//pbbs::sequence<ET> stemp(A, n);
+
+    //size_t mid = pbbs::binary_search(stemp, less_val);
+	size_t mid = PAM_binary_search(A, n, less_val);
+	
+    bool dup = (mid < n) && (!Entry::comp(bk, A[mid]));
+	  
+    auto P = utils::fork<node*>(utils::do_parallel(Seq::size(b), n),
+	       [&] () {return multi_delete_sorted(b->lc, A, mid, copy);},
+	       [&] () {return multi_delete_sorted(b->rc, A+mid+dup,
+						  n-mid-dup, copy);});
+
+    if (!dup) {
+	  node* r = GC::copy_if(b, copy, extra_ptr);
+      return Seq::node_join(P.first, P.second, r);
+	} else {
+	  GC::dec_if(b, copy, extra_ptr);
+	  return Seq::join2(P.first, P.second);
+	}
   }
 
   // assumes array A is of length n and is sorted with no duplicates
@@ -471,6 +532,7 @@ struct map_ops : Seq {
 
     auto less_val = [&] (ET& a) -> bool {return Entry::comp(Entry::get_key(a),bk);};
 
+	//---
 	//pbbs::sequence<ET> stemp(A, n);
 
     //size_t mid = pbbs::binary_search(stemp, less_val);

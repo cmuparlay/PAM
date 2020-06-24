@@ -160,6 +160,7 @@ public:
   using Map::root;
   using Map::get_root;
   using Map::insert;
+  using Map::check_balance;
 };
 
 // creates a key-value pair for the entry, and redefines from_entry

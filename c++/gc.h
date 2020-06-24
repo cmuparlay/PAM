@@ -64,6 +64,7 @@ struct gc {
   // then decrements the copied node's count
   // does not update
   static inline node* copy_if_needed(node* t) {
+	if (!t) std::cout << "copy if needed fail" << std::endl;
     node* res = t;
     if (t->ref_cnt > 1) {
       res = copy(t);

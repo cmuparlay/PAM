@@ -28,7 +28,8 @@ struct avl_tree {
     }
 
     static inline bool is_balanced(node* t) {
-      return !t || !(is_left_heavy(t->lc,t->rc) || is_left_heavy(t->rc,t->lc));
+      //return !t || !(is_left_heavy(t->lc,t->rc) || is_left_heavy(t->rc,t->lc));
+	  return !t || !((is_left_heavy(t->lc,t->rc) || is_left_heavy(t->rc,t->lc)));
     }
   
     static void update(node* t) {
@@ -52,11 +53,15 @@ struct avl_tree {
     static inline bool is_left_heavy(node* t1, node* t2) {
       return height(t1) > height(t2) + 1;
     }
-
+	
     static inline bool is_single_rotation(const node* t, const bool dir) {
       bool heavier = height(t->lc) > height(t->rc);
       return dir ? heavier : !heavier;
     }
+	
+	// static inline bool is_single_rotation(const node* t, const bool dir) {
+      // return dir ? (height(t->lc) > height(t->rc)) : (height(t->lc) < height(t->rc));
+    // }
 
 
   };
