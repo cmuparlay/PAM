@@ -55,7 +55,7 @@ struct basic_node {
   inline static ET* get_entry_p(node *a) {return &(a->entry);}
   static void set_entry(node *a, ET e) {a->entry = e;}
   static node* left(node a) {return a.lc;}
-  static node* right(node* a) {return a.rc;}
+  static node* right(node a) {return a.rc;}
 };
 
 //template <class E>
