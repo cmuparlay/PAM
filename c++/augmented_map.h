@@ -90,6 +90,10 @@ public:
   static M filter(M m, const F& f) {return Map::filter(std::move(m), f);}
   static M multi_insert(M m, pbbs::sequence<E> SS, bool seq_inplace = false) {
     return Map::multi_insert(std::move(m), SS, seq_inplace);}
+  
+  static M multi_delete(M m, pbbs::sequence<K> SS, bool seq_inplace = false) {
+    return Map::multi_delete(std::move(m), SS, seq_inplace);}
+	
   template<class Bin_Op>
   static M multi_insert_combine(M m, pbbs::sequence<E> S, Bin_Op f, 
 				bool seq_inplace = false) {
