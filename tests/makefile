@@ -2,8 +2,14 @@ include ../Makeheader
 
 all:	testParallel testParallelNA unit_tests
 
+testmi:	test_mi.cpp
+	$(CC) $(CFLAGS) -DNDEBUG test_mi.cpp -o test_mi $(LFLAGS)
+
 testParallel:	testParallel.cpp
 	$(CC) $(CFLAGS) -DNDEBUG testParallel.cpp -o testParallel $(LFLAGS)
+
+quick_example:	quick_example.cpp
+	$(CC) $(CFLAGS) -DNDEBUG quick_example.cpp -o quick_example $(LFLAGS)
 
 testParallelNA:	testParallel.cpp
 	$(CC) $(CFLAGS) -DNDEBUG -DNO_AUG testParallel.cpp -o testParallelNA $(LFLAGS)

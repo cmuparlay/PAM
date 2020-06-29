@@ -1062,7 +1062,7 @@ void test_loop(size_t n, size_t m, size_t repeat, size_t test_id, bool randomize
   cout << "threads = " << threads << endl;
   cout << "node size = " << sizeof(typename tmap::node) << endl;
   for (size_t i = 0; i < repeat; ++i) {
-	cout << reserve_size << endl;
+	//cout << reserve_size << endl;
     tmap::reserve(reserve_size);
     double tm = execute(test_id, n, m);
     cout << "RESULT"  << fixed << setprecision(6)
@@ -1079,7 +1079,13 @@ void test_loop(size_t n, size_t m, size_t repeat, size_t test_id, bool randomize
 
 int main (int argc, char *argv[]) {
   commandLine P(argc, argv,
-		"./testParallel [-n size1] [-m size2] [-r rounds] [-p] <testid>");
+		"[-n size1] [-m size2] [-r rounds] [-p] [-use] <testid>");
+  if (P.getOption("-use")) {
+	  for (int i = 0; i < 31; i++) {
+		  cout << "test " << i << "\t" << test_name[i] << endl;
+	  }
+	  return 0;
+  }
   size_t n = P.getOptionLongValue("-n", 10000000);
   size_t m = P.getOptionLongValue("-m", n);
   size_t repeat = P.getOptionIntValue("-r", 5);
