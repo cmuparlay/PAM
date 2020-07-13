@@ -661,23 +661,25 @@ double test_dest_intersect(size_t n, size_t m) {
 
 
 double test_split(size_t n) {
-  pbbs::sequence<par>v = uniform_input(n, 20);
+  //pbbs::sequence<par>v = uniform_input(n, 20);
 
-  tmap m1(v);
+  //tmap m1(v);
 
   // key_type key = v[n / 2].first;
 
-  timer t;
-  t.start();
-  pair<tmap, tmap> res;// = m1.split(key);
-  double tm = t.stop();
+  //timer t;
+  //t.start();
+  //pair<tmap, tmap> res;// = m1.split(key);
+  //pair<tmap, tmap> res = m1.split(key);
+  //double tm = t.stop();
 
-  check(m1.size() == n, "map size is wrong");
-  check(res.first.size() + res.second.size() + 1 == n
-	, "splitted map size is wrong");
+  //check(m1.size() == n, "map size is wrong");
+  //check(res.first.size() + res.second.size() + 1 == n, "splitted map size is wrong");
   //check(check_split(key, v, res), "split is wrong");
+  
+  cout << "split is not supported directly in the interface any more. You can use range() instead."
 
-  return tm;
+  return 0.0;
 }
 
 
