@@ -677,7 +677,7 @@ double test_split(size_t n) {
   //check(res.first.size() + res.second.size() + 1 == n, "splitted map size is wrong");
   //check(check_split(key, v, res), "split is wrong");
   
-  cout << "split is not supported directly in the interface any more. You can use range() instead."
+  cout << "split is not supported directly in the interface any more. You can use range() instead." << endl;
 
   return 0.0;
 }
