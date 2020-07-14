@@ -85,7 +85,9 @@ Keys, values and augmented values and be of any arbitrary types, even an another
 Any modern (2010+) x86-based multicore machines.  Relies on 128-bit CMPXCHG (requires -mcx16 compiler flag) but does not need hardware transactional memory (TSX).  Most examples given in our scripts require 64GB memory, but range_query requires 256GB memory and aug_sum on the large input requires 1TB memory.  All the examples can take smaller input size by setting command line arguments.
 
 ## Software dependencies
-PAM requires g++ 5.4.0 or later versions supporting the Cilk Plus extensions.    The scripts that we provide in the repository use "numactl" for better performance. All tests can also run directly without "numactl".
+PAM requires g++ 5.4.0 or later versions.  The default scheduler is the PBBS scheduler, but it also supports using Cilk Plus extensions or OpenMP (and of course just sequentially using g++).  You can specify one by using -DCILK, -DOPENMP or -DHOMEGROWN. 
+
+The scripts that we provide in the repository use "numactl" for better performance. All tests can also run directly without "numactl".
 
 We use python to write scripts to organize all results and compute speedup. It is not required to run tests.
 
