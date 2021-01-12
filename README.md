@@ -134,4 +134,4 @@ In directory tpch/. Our code builds indexes for TPC-H workload, which supports a
 
 [5] TPC benchmarks. http://www.tpc.org/
 
-[6] Yihan Sun and Guy Blelloch. 2019. Implementing parallel and concurrent tree structures. Tutorial in PPoPP 2019.
+[6] Yihan Sun and Guy Blelloch. 2019.  Implementing parallel and concurrent tree structures. Tutorial in PPoPP 2019.
