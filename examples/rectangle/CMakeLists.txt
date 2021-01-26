@@ -1,0 +1,8 @@
+add_executable(rec_sweep rec_sweep.cpp)
+add_executable(rec_test rec_test.cpp)
+add_executable(rec_sweep2 rec_sweep2.cpp)
+add_executable(rec_test2 rec_test2.cpp)
+target_link_libraries(rec_sweep PRIVATE pam)
+target_link_libraries(rec_test PRIVATE pam)
+target_link_libraries(rec_sweep2 PRIVATE pam)
+target_link_libraries(rec_test2 PRIVATE pam)

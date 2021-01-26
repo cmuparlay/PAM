@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# ./runall [-r rounds] [-p threads] [-l]
+
+export THREADS=`nproc --all`
+export ROUNDS=3
+export ARGS="./runall [-r rounds] [-p threads]"
+while getopts ":p:r:l" option
+do
+        case "${option}"
+        in
+          r) ROUNDS=$OPTARG;;
+          p) THREADS=$OPTARG;;
+          l) LARGE=1;;
+          \?) echo $ARGS >&2; exit 1;;
+          :)  echo $ARGS >&2; exit 1;;
+        esac
+done
+
+date
+if [ $LARGE ]
+then
+    echo "including large inputs"
+fi
+echo threads=$THREADS
+echo rounds=$ROUNDS
+CILK_NWORKERS=$THREADS
+
+head="numactl -i all"
+if [ $THREADS == 1 ]
+then
+    head=""
+fi
+
+# make clean
+make testParallel
+
+# union
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000000 0
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000 0
+
+# find
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000000 12
+
+# insert
+if [ $THREADS == 1 ]
+then
+$head ./testParallel -r $ROUNDS -n 100000000 20
+fi
+
+# fromseq
+$head ./testParallel -r $ROUNDS -n 100000000 4
+
+
+# filter
+$head ./testParallel -r $ROUNDS -n 100000000 5
+
+# multi insert
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000000 14
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000 14
+
+# range
+$head ./testParallel -r $ROUNDS -n 100000000 -m 10000000 18
+
+# aug left
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000000 22
+
+# aug range
+$head ./testParallel -r $ROUNDS -n 100000000 -m 100000000 19
+
+make testParallelNA
+
+# union
+$head ./testParallelNA -r $ROUNDS -n 100000000 -m 100000000 0
+
+# insert
+if [ $THREADS == 1 ]
+then
+    $head ./testParallelNA -r $ROUNDS -n 100000000 20
+fi
+
+# fromseq
+$head ./testParallelNA -r $ROUNDS -n 100000000 4
+
+# range
+$head ./testParallelNA -r $ROUNDS -n 100000000 -m 10000000 18
+
+# STL
+
+if [ $THREADS == 1 ]
+then
+    
+# tree union
+$head ./testParallelNA -r $ROUNDS -n 100000000 -m 100000000 10
+$head ./testParallelNA -r $ROUNDS -n 100000000 -m 100000 10
+
+# vector union
+$head ./testParallelNA -r $ROUNDS -n 100000000 -m 100000000 11
+$head ./testParallelNA -r $ROUNDS -n 100000000 -m 100000 11
+
+# insert
+$head ./testParallelNA -r $ROUNDS -n 100000000 16
+fi
+
+# Large inputs
+
+if [ $LARGE ]
+then
+    $head ./testParallel -r $ROUNDS -n 10000000000 4
+    $head ./testParallel -r $ROUNDS -n 10000000000 -m 100000000 19
+fi

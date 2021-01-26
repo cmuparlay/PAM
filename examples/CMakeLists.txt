@@ -1,0 +1,6 @@
+add_subdirectory(index)
+add_subdirectory(interval)
+add_subdirectory(range_query)
+add_subdirectory(segment)
+add_subdirectory(rectangle)
+add_subdirectory(tpch)
