@@ -1,6 +1,30 @@
 using Q22_relt = pair<int,double>;
 using Q22_rtype = parlay::sequence<Q22_relt>;
 
+using Q22_a_type = tuple<float, uchar, bool>;
+
+
+//template<typename Monoid>
+  struct Q22_helper {
+        using key_type = int;
+        using val_type = Q22_relt;
+        //static auto mon = parlay::pair_monoid(parlay::addm<int>(), parlay::addm<double>());
+        //Monoid mon;
+        //Q22_helper(Monoid const &m) : mon(m) {};
+        static key_type get_key(const Q22_a_type& a) {if (get<1>(a) > 31) abort(); return get<1>(a);}
+        static val_type get_val(const Q22_a_type& a) {return Q22_relt(1, get<0>(a));}
+        static val_type init() {return Q22_relt();}
+        static void update(val_type& d, val_type d2) {
+		auto mon = parlay::pair_monoid(parlay::addm<int>(), parlay::addm<double>());
+		d = mon.f(d,d2);}
+        static void combine(val_type& d, slice<Q22_a_type*,Q22_a_type*> s) {
+          //auto vals = delayed_map(s, [&] (Q22_a_type &v) {return Q22_relt(1, get<0>(v));});
+          auto mon = parlay::pair_monoid(parlay::addm<int>(), parlay::addm<double>());
+	  d = parlay::internal::reduce(delayed_map(s, [&] (Q22_a_type &v) -> Q22_relt {return Q22_relt(1, get<0>(v));}), mon);
+        }
+  };
+
+
 Q22_rtype Q22(maps m, bool verbose, uchar* countrycode) {
   auto belong_country = [&] (uchar x) -> bool {
     for (int i = 0; i < 7; i++)
@@ -51,11 +75,18 @@ Q22_rtype Q22(maps m, bool verbose, uchar* countrycode) {
   auto key = [&] (a_type v) -> int {if (get<1>(v) > 31) abort(); return get<1>(v);};
   auto val = [&] (a_type v) -> Q22_relt {
     return Q22_relt(1, get<0>(v));};
-  parlay::sequence<Q22_relt> sums =
-    parlay::internal::collect_reduce(r, key, val,
-			 parlay::pair_monoid(parlay::addm<int>(),
-					   parlay::addm<double>()),
-			 32);
+  //using Monoid = parlay::pair_monoid<typename addm<int>, typename addm<double>>;
+  
+  auto mon = parlay::pair_monoid(parlay::addm<int>(), parlay::addm<double>());
+  
+  parlay::sequence<Q22_relt> sums = 
+	  parlay::internal::collect_reduce(r, Q22_helper(), 32);
+  //parlay::sequence<Q22_relt> sums =
+    //parlay::internal::collect_reduce(r, key, val,
+	//		 parlay::pair_monoid(parlay::addm<int>(),
+	//				   parlay::addm<double>()),
+	//		 32);
+  
 
   return sums;
 }

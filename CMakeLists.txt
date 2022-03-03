@@ -63,13 +63,13 @@ else()
 endif()
 
 # Link against jemalloc
-find_library(JEMALLOC_LIB jemalloc)
-if(NOT JEMALLOC_LIB)
-  message(FATAL_ERROR "Could not find jemalloc.")
-else()
-  message("-- Found jemalloc: ${JEMALLOC_LIB}")
-  target_link_libraries(pam INTERFACE optimized ${JEMALLOC_LIB})    
-endif()
+#find_library(JEMALLOC_LIB jemalloc)
+#if(NOT JEMALLOC_LIB)
+#  message(FATAL_ERROR "Could not find jemalloc.")
+#else()
+#  message("-- Found jemalloc: ${JEMALLOC_LIB}")
+#  target_link_libraries(pam INTERFACE optimized ${JEMALLOC_LIB})    
+#endif()
 
 
 # -------------------------------------------------------------------

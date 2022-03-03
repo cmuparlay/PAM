@@ -11,10 +11,11 @@ Q15_rtype Q15(maps m,
 					Date(end_date));
 
   using ftype = double;
-  using sr_type = pair<dkey_t, float>;
+  using sr_type = pair<dkey_t, ftype>;
+  //using sr_type = pair<dkey_t, float>;
   
   auto map_lineitems = [&] (li_map::E& e) -> sr_type {
-    float v = e.e_price*(1 - e.discount.val());
+    ftype v = (ftype) e.e_price*(1 - e.discount.val());
     return make_pair(e.suppkey, v);
   };
 
@@ -25,9 +26,11 @@ Q15_rtype Q15(maps m,
   auto get_index = [] (sr_type const &a) {return a.first;};
   auto get_val = [] (sr_type const &a) -> ftype {return (ftype) a.second;};
 
-  parlay::sequence<ftype> supp_sums =
-    parlay::internal::collect_reduce(elts, get_index, get_val, parlay::addm<ftype>(),
-				     max_supp_id);
+   parlay::sequence<ftype> supp_sums =
+     parlay::reduce_by_index(elts, max_supp_id);
+   //parlay::sequence<ftype> supp_sums =
+   // parlay::internal::collect_reduce(elts, get_index, get_val, parlay::addm<ftype>(),
+	//			     max_supp_id);
 
   ftype max_revenue = parlay::reduce(supp_sums, parlay::maxm<ftype>());
   

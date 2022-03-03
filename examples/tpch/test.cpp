@@ -494,6 +494,7 @@ void test_all(bool verbose, bool if_query, bool if_update,
   nextTime("generate txns");  
 
   if (verbose) {
+    cout << "print memory stats:" << endl;
     memory_stats();
     cout << "Lineitem size: " << sizeof(Lineitem) << endl;
     cout << "Order size: " << sizeof(Orders) << endl;
@@ -522,6 +523,7 @@ void test_all(bool verbose, bool if_query, bool if_update,
     if (if_query) {
       double** tm; int round = 0;
       tm = new double*[queries];
+      cout << "Queries start ..." << endl;
       for (int i = 0; i < queries; i++) {
 		tm[i] = new double[100];
       }
@@ -553,6 +555,6 @@ int main(int argc, char** argv) {
   test_all(verbose, if_query, if_update,
 	   scale, num_txns, data_directory);
   
-  memory_stats();
+  //memory_stats();
   return 0;
 }
