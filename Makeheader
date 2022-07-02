@@ -19,5 +19,5 @@ CPFLAGS = -DHOMEGROWN
 LPFLAGS = -pthread
 endif
 
-CFLAGS = -mcx16 -O3 -DNDEBUG -std=c++17 -march=native -Wall -I../../include $(CPFLAGS) 
+CFLAGS = -mcx16 -O3 -DNDEBUG -std=c++17 -march=native -Wall -I../include/pam $(CPFLAGS) 
 LFLAGS = $(LPFLAGS) $(JEMALLOC)
