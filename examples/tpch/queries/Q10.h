@@ -22,7 +22,7 @@ Q10_rtype Q10(maps m, const char* start, const char* end) {
   sequence<kf_pair> elts = flatten<kf_pair>(order_range, date_f);
 
   // sum revenue by custkey
-  sequence<kf_pair> r = parlay::reduce_by_key(elts, parlay::addm<float>());
+  sequence<kf_pair> r = parlay::reduce_by_key(elts, parlay::plus<float>());
   //sequence<kf_pair> r = parlay::internal::group_by_and_combine(elts, parlay::addm<float>());
 
   // sort by revenue
