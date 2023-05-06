@@ -1,3 +1,4 @@
+#include "parlay/internal/block_allocator.h"
 #include "parlay/primitives.h"
 #include "parlay/io.h"
 #include <string.h>
@@ -236,7 +237,7 @@ struct Lineitem {
 
 Lineitem* li;
 
-parlay::block_allocator order_str_pool(128); //96);
+parlay::internal::block_allocator order_str_pool(128); //96);
 
 //size 32
 struct Orders {
@@ -267,7 +268,7 @@ Orders() : strings(nullptr) {}
   char* comment() {return strings;}
 };
 
-parlay::block_allocator customer_str_pool(192);
+parlay::internal::block_allocator customer_str_pool(192);
 
 //size 24
 struct Customer {
@@ -297,7 +298,7 @@ struct Customer {
   char* comment() {return strings + 74;} // S[7] // 117 long var // total 192
 };
 
-parlay::block_allocator supp_str_pool(185);
+parlay::internal::block_allocator supp_str_pool(185);
 
 //size 24
 struct Supplier {
@@ -347,7 +348,7 @@ parlay::sequence<Nations> nations;
 
 
 
-parlay::block_allocator part_str_pool(144);
+parlay::internal::block_allocator part_str_pool(144);
 //parlay::block_allocator part_str_pool(155);
 //parlay::block_allocator part_str_pool(192);
 

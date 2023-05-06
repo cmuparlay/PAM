@@ -1,3 +1,5 @@
+#include "monoid.h"
+
 // 6 possible flags, 6 values each
 constexpr int num_rows = 6;
 constexpr int num_vals = 6;

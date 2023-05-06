@@ -16,7 +16,7 @@ using Q22_a_type = tuple<float, uchar, bool>;
         static val_type init() {return Q22_relt();}
         static void update(val_type& d, val_type d2) {
 		auto mon = parlay::pair_monoid(parlay::addm<int>(), parlay::addm<double>());
-		d = mon.f(d,d2);}
+		d = mon(d,d2);}
         static void combine(val_type& d, slice<Q22_a_type*,Q22_a_type*> s) {
           //auto vals = delayed_map(s, [&] (Q22_a_type &v) {return Q22_relt(1, get<0>(v));});
           auto mon = parlay::pair_monoid(parlay::addm<int>(), parlay::addm<double>());
