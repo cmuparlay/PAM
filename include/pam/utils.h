@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <string.h>
+#include "parlay/parallel.h"
 
 // *******************************************
 //   Utils
