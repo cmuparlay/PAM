@@ -418,13 +418,13 @@ void logging(transaction* txns, int num_txns, txn_info& ti, bool verbose) {
 	}
 }
 
-double exe_txns2(transaction* txns, int num_txns, txn_info& ti, bool verbose) {
-		timer t; t.start();
-	parlay::par_do([&] () {exe_txns2(txns, num_txns, ti, verbose);},
-	   [&] () {logging(txns, num_txns, ti, verbose);});
+// double exe_txns2(transaction* txns, int num_txns, txn_info& ti, bool verbose) {
+// 		timer t; t.start();
+// 	parlay::par_do([&] () {exe_txns2(txns, num_txns, ti, verbose);},
+// 	   [&] () {logging(txns, num_txns, ti, verbose);});
 	   
-	   cout << "after logging and txn: " << t.stop() << endl;
-}
+// 	   cout << "after logging and txn: " << t.stop() << endl;
+// }
 
 
 void post_process(double** tm, int round) {

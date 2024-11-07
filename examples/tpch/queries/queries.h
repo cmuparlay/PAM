@@ -63,7 +63,7 @@ void exe_query(bool verbose, double** tm, int& round, int rpt = 0) {
 	  cout << "Round " << round << endl;
 	  working_version = history.size()-1; 
 	  m2 = history[working_version];
-	  //tm[0][round] = Q22time(m2, verbose);
+	  tm[0][round] = Q22time(m2, verbose);
 	  if (verbose) cout << "Q22 Time: " << tm[0][round] << endl;
 
 	  working_version = history.size()-1; m2 = history[working_version];
@@ -103,7 +103,7 @@ void exe_query(bool verbose, double** tm, int& round, int rpt = 0) {
 	  if (verbose) cout << "Q9 Time: " << tm[9][round] << endl;
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //tm[10][round] = Q10time(m2, verbose);
+	  tm[10][round] = Q10time(m2, verbose);
 	  if (verbose) cout << "Q10 Time: " << tm[10][round] << endl; 
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
@@ -123,7 +123,7 @@ void exe_query(bool verbose, double** tm, int& round, int rpt = 0) {
 	  if (verbose) cout << "Q14 Time: " << tm[14][round] << endl;
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
-	  //tm[15][round] = Q15time(m2, verbose);
+	  tm[15][round] = Q15time(m2, verbose);
 	  if (verbose) cout << "Q15 Time: " << tm[15][round] << endl;
 	  
 	  working_version = history.size()-1; m2 = history[working_version];
