@@ -6,8 +6,8 @@ Q9_rtype Q9(maps mx, const char* color) {
   maps m = mx;
   using ps_map = part_to_supp_map;
   using s_map = part_supp_and_item_map;
-  order_map& om = m.om;
-  o_order_map& odm = m.oom;
+  order_map& om = m.line_items_for_order;
+  o_order_map& odm = m.orders_for_date;
   timer t;
   t.start();
 
@@ -24,7 +24,7 @@ Q9_rtype Q9(maps mx, const char* color) {
   size_t max_order_num = (*(om.select(om.size() - 1))).first;
   sequence<uchar> ord_year(max_order_num+1);
   auto order_f = [&] (order_map::E& pe, size_t i) -> void {
-    ord_year[pe.first] = (uchar) (pe.second.first.orderdate.year()-min_year);
+    ord_year[pe.first] = (uchar) (pe.second.first.order_date.year()-min_year);
   };
   order_map::map_index(om, order_f);
 
@@ -35,28 +35,28 @@ Q9_rtype Q9(maps mx, const char* color) {
     Part& p = pe.second.first;
     s_map& sm = pe.second.second;
     dkey_t part_key = pe.first;
-    if (strstr(p.name(), color) != NULL) {
+    if (strstr(p.name(), color) != nullptr) {
       auto supp_f = [&] (s_map::E& se, size_t i) -> void {
-	li_map& li = se.second.second;
+	line_item_set& li = se.second.second;
 	dkey_t supp_key = se.first.second;
 
-	double supp_cost = se.second.first.supplycost;
+	double supp_cost = se.second.first.supply_cost;
 
 	int natkey = static_data.all_supp[se.first.second].nationkey;
-	auto li_f = [&] (li_map::E& l) -> void {
+	auto li_f = [&] (line_item_set::E& l) -> void {
 	  double profit = ((double) l.e_price * (1.0 - l.discount.val())
 			   - supp_cost * l.quantity());
-	  int year = ord_year[l.orderkey];
+	  int year = ord_year[l.order_key];
 	  a[year][natkey] += profit;
 	};
-	li_map::foreach_seq(li, li_f);
+	line_item_set::foreach_seq(li, li_f);
       };
       //s_map::foreach_seq(sm, supp_f);
 	  s_map::foreach_index(sm, supp_f, 100);
     }
   };
 
-  part_to_supp_map& psm = m.psm2;
+  part_to_supp_map& psm = m.suppliers_for_part;
   using Add = Add_Nested_Array<nat_years>;
   nat_years a = ps_map::semi_map_reduce(psm, part_f, Add(), 4000);
   
@@ -82,7 +82,7 @@ double Q9time(maps m, bool verbose) {
   Q9_rtype result = Q9(m, color);
    
   double ret_tm = t.stop();
-  if (query_out) cout << "Q9 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q9 : " << ret_tm << endl;
  
   if (verbose) {
     for (int i=0; i<1; i++) {

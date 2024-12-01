@@ -45,7 +45,7 @@ struct avl_tree {
 
   private:
     static int height(node* a) {
-      if (a == NULL) return 0;
+      if (a == nullptr) return 0;
       else return a->height;
     }
 

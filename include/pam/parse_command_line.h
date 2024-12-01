@@ -72,7 +72,7 @@ struct commandLine {
   char* getOptionValue(std::string option) {
     for (int i = 1; i < argc-1; i++)
       if ((std::string) argv[i] == option) return argv[i+1];
-    return NULL;
+    return nullptr;
   }
 
   std::string getOptionValue(std::string option, std::string defaultValue) {

@@ -18,7 +18,7 @@ struct sequence_ops : Tree {
   }
   
   static node_size_t depth(node* a) {
-    if (a == NULL) return 0;
+    if (a == nullptr) return 0;
     auto P = utils::fork<node_size_t>(Tree::size(a) >= utils::node_limit,
 		[&]() {return depth(a->lc);},
 		[&]() {return depth(a->rc);});
@@ -26,7 +26,7 @@ struct sequence_ops : Tree {
   }
 
   static bool check_balance(node* a) {
-    if (a == NULL) return true;
+    if (a == nullptr) return true;
     auto P = utils::fork<bool>(Tree::size(a) >= utils::node_limit,
 		[&]() {return check_balance(a->lc);},
 		[&]() {return check_balance(a->rc);});
@@ -44,11 +44,11 @@ struct sequence_ops : Tree {
       else if (lrank < left_size) b = b->lc;
       else return b;
     }
-    return NULL;
+    return nullptr;
   }
 
   static node* take(node* b, size_t rank) {
-    if (!b) return NULL;
+    if (!b) return nullptr;
     size_t left_size = Tree::size(b->lc);
     if (rank < left_size) return take(b->lc, rank);
     node* join = Tree::make_node(Tree::get_entry(b));
@@ -81,7 +81,7 @@ struct sequence_ops : Tree {
 
   template<class InTree, class Func>
   static node* map(typename InTree::node* b, const Func& f) {
-    if (!b) return NULL;
+    if (!b) return nullptr;
     size_t n = InTree::size(b);
     auto P = utils::fork<node*>(n >= utils::node_limit,
        [&] () {return map<InTree>(b->lc, f);},
@@ -122,7 +122,7 @@ struct sequence_ops : Tree {
 
   template<class Func>
   static node* filter(node* b, const Func& f, size_t granularity=utils::node_limit, bool extra_ptr = false) {
-    if (!b) return NULL;
+    if (!b) return nullptr;
     bool copy = extra_ptr || (b->ref_cnt > 1);
     
     auto P = utils::fork<node*>(Tree::size(b) >= granularity,
@@ -187,7 +187,7 @@ struct sequence_ops : Tree {
   template<class Seq1, class Func>
   static node* map_filter(typename Seq1::node* b, const Func& f,
 			  size_t granularity=utils::node_limit) {
-    if (!b) return NULL;
+    if (!b) return nullptr;
     
     auto P = utils::fork<node*>(Seq1::size(b) >= granularity,
       [&]() {return map_filter<Seq1>(b->lc, f, granularity);},

@@ -39,7 +39,7 @@ Q22_rtype Q22(maps m, bool verbose, uchar* countrycode) {
 
   // c_acctbal, countrycode, size = 0
   using a_type = tuple<float, uchar, bool>;
-  parlay::sequence<a_type> res(m.cm.size());
+  parlay::sequence<a_type> res(m.orders_for_customer.size());
 
   // write info to a sequence
   auto map_res = [&] (customer_map::E& e, size_t i) -> void {
@@ -47,7 +47,7 @@ Q22_rtype Q22(maps m, bool verbose, uchar* countrycode) {
     uchar cc = get_countrycode(c.phone());
     res[i] = a_type(c.acctbal, cc, e.second.second.size() == 0);
   };
-  customer_map::map_index(m.cm, map_res);
+  customer_map::map_index(m.orders_for_customer, map_res);
 
   // filter to keep those who belong to the right country
   auto is_country = [&] (a_type e) -> bool {
@@ -106,6 +106,6 @@ double Q22time(maps m, bool verbose) {
   	 << x.second << endl;
    }
   double ret_tm = t.stop();
-  if (query_out) cout << "Q22 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q22 : " << ret_tm << endl;
   return ret_tm;
 }

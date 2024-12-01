@@ -3,7 +3,7 @@ using Q5_rtype = sequence<Q5_elt>;
 
 Q5_rtype Q5(maps m, char* start_date, char* end_date, uint qregion) {
   Date ostart = Date(start_date), oend = Date(end_date);
-  customer_map cm = m.cm;
+  customer_map cm = m.orders_for_customer;
 
   constexpr int num_nations = 25;
   using T = array<double, num_nations>;
@@ -13,16 +13,16 @@ Q5_rtype Q5(maps m, char* start_date, char* end_date, uint qregion) {
     if (nations[nationid].regionkey == qregion) {
       auto order_f = [&] (order_map::E& oe) -> double {
 	Orders& ord = oe.second.first;
-	if (Date::less(ord.orderdate, ostart) ||
-	    !Date::less(ord.orderdate, oend)) return 0.0;
-	auto li_f = [&] (li_map::E& l) -> double { 
-	  dkey_t suppid = l.suppkey;
+	if (Date::less(ord.order_date, ostart) ||
+	    !Date::less(ord.order_date, oend)) return 0.0;
+	auto li_f = [&] (line_item_set::E& l) -> double { 
+	  dkey_t suppid = l.supplier_key;
 	  Supplier& suppV = static_data.all_supp[suppid];
 	  if (suppV.nationkey != nationid) return 0.0;
 	  else return l.e_price * (1.0 - l.discount.val());
 	};
-	li_map li = oe.second.second; 
-	return li_map::map_reduce(li, li_f, Add<double>());
+	line_item_set li = oe.second.second; 
+	return line_item_set::map_reduce(li, li_f, Add<double>());
       };
       order_map om = ce.second.second;
       a[nationid] += order_map::map_reduce(om, order_f, Add<double>());
@@ -51,7 +51,7 @@ double Q5time(maps m, bool verbose) {
   Q5_rtype result = Q5(m, start, end, qregion);
 
   double ret_tm = t_q5.stop();
-  if (query_out) cout << "Q5 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q5 : " << ret_tm << endl;
 
   if (verbose) {
     Q5_elt r = result[0];

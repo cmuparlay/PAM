@@ -11,7 +11,7 @@ Q3_rtype Q3(maps m, char* seg, Date date) {
   };
   using result_list = pam_set<set_entry>;
 
-  customer_map& cm = m.cm;
+  customer_map& cm = m.orders_for_customer;
   struct Union {
     using T = result_list;
     static T identity() {return result_list();}
@@ -24,17 +24,17 @@ Q3_rtype Q3(maps m, char* seg, Date date) {
     if (strcmp(mkseg, seg) == 0) {
       auto order_f = [&] (order_map::E& o) {
 	Orders& ord = o.second.first;
-	if (Date::less(ord.orderdate, date)) {
-	  auto lineitem_f = [&] (li_map::E& l) {
-	    if (Date::less(date, l.s_date))
+	if (Date::less(ord.order_date, date)) {
+	  auto lineitem_f = [&] (line_item_set::E& l) {
+	    if (Date::less(date, l.ship_date))
 	      return l.e_price * (1.0 - l.discount.val());
 	    else return 0.0; };
-	  li_map& lm = o.second.second;
-	  float revenue = li_map::map_reduce(lm, lineitem_f, Add<float>());
+	  line_item_set& lm = o.second.second;
+	  float revenue = line_item_set::map_reduce(lm, lineitem_f, Add<float>());
 	  if (revenue > 0.0)
-	    return result_list({Q3_relt(ord.orderkey,
-					ord.shippriority,
-					ord.orderdate,
+	    return result_list({Q3_relt(ord.order_key,
+					ord.shipment_priority,
+					ord.order_date,
 					revenue)});
 	}
 	return result_list();
@@ -67,6 +67,6 @@ double Q3time(maps m, bool verbose) {
 	 << get<1>(x) << endl;  // ship_priority
   }
 
-  if (query_out) cout << "Q3 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q3 : " << ret_tm << endl;
   return ret_tm;  
 }

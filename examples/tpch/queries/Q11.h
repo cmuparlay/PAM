@@ -4,7 +4,7 @@ using Q11_rtype = parlay::sequence<Q11_elt>;
 
 Q11_rtype Q11(maps m, uint nation_id, double fraction) {
   using kf_pair = Q11_elt;
-  size_t max_part_key = (*(m.psm2.last())).first;
+  size_t max_part_key = (*(m.suppliers_for_part.last())).first;
   parlay::sequence<ftype> sums = parlay::sequence<ftype>(max_part_key,
 						     (ftype) 0.0);
     
@@ -12,13 +12,13 @@ Q11_rtype Q11(maps m, uint nation_id, double fraction) {
     Supplier& s = se.second.first;
     if (s.nationkey == nation_id) {
       auto part_f = [&] (part_supp_and_item_map::E& pe, size_t j) -> void {
-	Part_supp ps = pe.second.first;
-	utils::write_add(&sums[ps.partkey], ps.availqty* (ftype) ps.supplycost);
+	part_supp ps = pe.second.first;
+	utils::write_add(&sums[ps.part_key], ps.available_quantity* (ftype) ps.supply_cost);
       };
       part_supp_and_item_map::map_index(se.second.second, part_f);
     }
   };
-  supp_to_part_map::map_index(m.spm2, supp_f);
+  supp_to_part_map::map_index(m.parts_for_supplier, supp_f);
 
   auto rval = [&] (size_t i) {return kf_pair(i, sums[i]);};
   auto p = parlay::delayed_seq<kf_pair>(max_part_key, rval);
@@ -51,7 +51,7 @@ double Q11time(maps m, bool verbose) {
   double fraction = .0001;
   Q11_rtype result = Q11(m, nation_id, fraction);
   double ret_tm = t.stop();
-  if (query_out) cout << "Q11 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q11 : " << ret_tm << endl;
   
   if (verbose) {
     cout << "Q11:" << endl;

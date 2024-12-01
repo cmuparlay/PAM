@@ -77,19 +77,17 @@ Index secondary_index_o(parlay::sequence<X>  &items, F get_key) {
   using P = pair<outer_key, item*>;
   size_t n = items.size();
   parlay::sequence<P> x = parlay::tabulate(n, [&] (size_t i) {
-	  Lineitem* cur = &(items[i]);
-      return P(get_key(items[i]), cur);});
+	  LineItem* cur = &(items[i]);
+    return P(get_key(items[i]), cur);
+  });
 
-  //auto make_item_map = [&] (parlay::sequence<item*> &L) {
-  auto make_item_map = [&] (parlay::slice<item**, item**> L) {
-    auto less = [&] (item* a, item* b) {
-      return inner_map::Entry::comp(*a, *b);};
-    parlay::sequence<item*> r = parlay::sort(L, less);
+  return Index::multi_insert_reduce(Index(), x, [&](parlay::slice<item**, item**> L) {
+    parlay::sequence<item*> r = parlay::sort(L, [&] (item* a, item* b) {
+      return inner_map::Entry::comp(*a, *b);
+    });
     parlay::sequence<item> s = parlay::tabulate(r.size(),[&] (size_t i) {return *r[i];});
     return inner_map::from_sorted(s);
-  };
-  Index sm = Index::multi_insert_reduce(Index(), x, make_item_map);
-  return sm;
+  });
 }
 
 // Makes an index of items based on key extracted from each item by get_key

@@ -5,19 +5,19 @@ using Q10_rtype = sequence<Q10_relt>;
 Q10_rtype Q10(maps m, const char* start, const char* end) {
 
   // take range of order dates
-  o_order_map order_range = o_order_map::range(m.oom, Date(start), Date(end));
+  o_order_map order_range = o_order_map::range(m.orders_for_date, Date(start), Date(end));
 	
   using kf_pair = pair<dkey_t, float>;
 
   // get (custkey,revenue) for lineitems with return flag by order
   auto date_f = [&] (order_map::E& e) -> kf_pair {
     Orders& o = e.second.first;
-    auto li_f = [&] (li_map::E& l) -> float {
+    auto li_f = [&] (line_item_set::E& l) -> float {
       if (l.returnflag() != 'R') return 0.0;
       else return l.e_price*(1 - l.discount.val());
     };
-    float v = li_map::map_reduce(e.second.second, li_f, Add<float>());
-    return make_pair(o.custkey, v);
+    float v = line_item_set::map_reduce(e.second.second, li_f, Add<float>());
+    return make_pair(o.customer_key, v);
   };
   sequence<kf_pair> elts = flatten<kf_pair>(order_range, date_f);
 
@@ -33,7 +33,7 @@ Q10_rtype Q10(maps m, const char* start, const char* end) {
   auto get_result = [&] (size_t i) -> Q10_relt {
     dkey_t custkey = res[i].first;
     float revenue = res[i].second;
-    Customer c = (*(m.cm.find(custkey))).first;
+    Customer c = (*(m.orders_for_customer.find(custkey))).first;
     char* n_name = nations[c.nationkey].name;
     return Q10_relt(custkey, c.name(), revenue, c.acctbal,
 		    n_name, c.address(), c.phone(), c.comment());};
@@ -50,7 +50,7 @@ double Q10time(maps m, bool verbose) {
   Q10_rtype result = Q10(m, start, end);
 					    
   double ret_tm = t.stop();
-  if (query_out) cout << "Q10 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q10 : " << ret_tm << endl;
 
   if (verbose) {
     Q10_relt r1 = result[0];

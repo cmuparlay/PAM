@@ -43,7 +43,7 @@ struct treap {
 
   private:
     static size_t priority(node* a) {
-      return (a == NULL) ? 0 :Entry::hash(Node::get_entry(a));
+      return (a == nullptr) ? 0 :Entry::hash(Node::get_entry(a));
     }
   };
 };

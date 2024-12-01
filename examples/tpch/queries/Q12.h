@@ -8,7 +8,7 @@ Q12_rtype Q12(maps m, char* mode1, char* mode2,
   char m1 = mode1[0];
   char m2 = mode2[0];
   
-  receipt_map& rm = m.rm;
+  receipt_map& rm = m.receipts_for_date;
   receipt_map rm_range = receipt_map::range(rm, start, end);
 
   using ret_t = Q12_rtype;
@@ -18,12 +18,12 @@ Q12_rtype Q12(maps m, char* mode1, char* mode2,
   ret_t id = AddPP::identity();
 
   auto date_f = [&] (receipt_map::E& e) -> ret_t {
-    auto li_f = [&] (li_map::E& e) -> ret_t {
-      if (Date::less(e.c_date, e.r_date) && Date::less(e.s_date, e.c_date)
+    auto li_f = [&] (line_item_set::E& e) -> ret_t {
+      if (Date::less(e.c_date, e.r_date) && Date::less(e.ship_date, e.c_date)
 	  && !Date::less(e.r_date, start) && Date::less(e.r_date, end)) {
 	if (e.shipmode() != m1 && e.shipmode() != m2) return id;
 	int high = 0, low = 0;
-	uchar o_priority = (*(m.om.find(e.orderkey))).first.orderpriority;
+	uchar o_priority = (*(m.line_items_for_order.find(e.order_key))).first.order_priority;
 	if (o_priority == 1 || o_priority == 2) high = 1; else low = 1;
 	if (e.shipmode() == m1)
 	  return make_pair(make_pair(high, low), make_pair(0,0));
@@ -32,8 +32,8 @@ Q12_rtype Q12(maps m, char* mode1, char* mode2,
       }
       return id;
     };
-    li_map& lim = e.second;
-    return li_map::map_reduce(lim, li_f, AddPP());
+    line_item_set& lim = e.second;
+    return line_item_set::map_reduce(lim, li_f, AddPP());
   };
   return receipt_map::map_reduce(rm_range, date_f, AddPP(), 1);
 }
@@ -49,7 +49,7 @@ double Q12time(maps m, bool verbose) {
   Q12_rtype result = Q12(m, ship_mode1, ship_mode2, start_date, end_date);
   
   double ret_tm = t.stop();
-  if (query_out) cout << "Q12 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q12 : " << ret_tm << endl;
 
   if (verbose) {
     cout << "Q12:" << endl

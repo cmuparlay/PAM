@@ -5,23 +5,23 @@ sequence<Q20rtype> Q20(maps m, bool verbose,
 		       dkey_t q_nation, const char* color) {
   const Date start = Date(start_date);
   const Date end = Date(end_date);
-  supp_to_part_map& spm = m.spm2;
+  supp_to_part_map& spm = m.parts_for_supplier;
   
   auto supp_filter = [&] (supp_to_part_map::E& e) {
     Supplier& s = e.second.first;
     if (s.nationkey != q_nation) return false;
     part_supp_and_item_map& inner_map = e.second.second;
     auto exists = [&] (part_supp_and_item_map::E& e) {
-      Part_supp& ps = e.second.first;
-      dkey_t partkey = ps.partkey;
+      part_supp& ps = e.second.first;
+      dkey_t partkey = ps.part_key;
       Part& p = static_data.all_part[partkey];
-      li_map& lm = e.second.second;
-      auto map_lineitem = [&] (li_map::E& l) -> int {
-	if (Date::less(l.s_date, start)) return 0;
-	if (Date::less(l.s_date, end)) return l.quantity(); else return 0;
+      line_item_set& lm = e.second.second;
+      auto map_lineitem = [&] (line_item_set::E& l) -> int {
+	if (Date::less(l.ship_date, start)) return 0;
+	if (Date::less(l.ship_date, end)) return l.quantity(); else return 0;
       };
-      int th = li_map::map_reduce(lm, map_lineitem, Add<int>());
-      if ((strstr(p.name(), color) == p.name()) && ((ps.availqty*2) > th)) {
+      int th = line_item_set::map_reduce(lm, map_lineitem, Add<int>());
+      if ((strstr(p.name(), color) == p.name()) && ((ps.available_quantity*2) > th)) {
 	return true;
       }
       else return false;
@@ -60,6 +60,6 @@ double Q20time(maps m, bool verbose) {
   }
   
   double ret_tm = t.stop();
-  if (query_out) cout << "Q20 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q20 : " << ret_tm << endl;
   return ret_tm;
 }

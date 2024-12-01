@@ -9,7 +9,7 @@ Q13_rtype Q13(maps m, const char* word1, const char* word2) {
     auto order_f = [&] (order_map::E& oe) {
       char* comment = oe.second.first.comment();
       char* s1 = strstr(comment, word1);
-      return (s1 == NULL || strstr(s1, word2) == NULL);
+      return (s1 == nullptr || strstr(s1, word2) == nullptr);
     };
     order_map& omap = ce.second.second;
     int t = order_map::map_reduce(omap, order_f, Add<int>());
@@ -17,7 +17,7 @@ Q13_rtype Q13(maps m, const char* word1, const char* word2) {
   };
 
   T bucket_sums =
-    customer_map::semi_map_reduce(m.cm, customer_f, Add_Array<T>(), 20);
+    customer_map::semi_map_reduce(m.orders_for_customer, customer_f, Add_Array<T>(), 20);
   
   using rt = Q13_elt;
   auto val = [&] (size_t i) {return rt(i+1, bucket_sums[i+1]);};
@@ -35,7 +35,7 @@ double Q13time(maps m, bool verbose) {
   Q13_rtype result = Q13(m, word1, word2);
     
   double ret_tm = t.stop();
-  if (query_out) cout << "Q13 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q13 : " << ret_tm << endl;
 
   if (verbose) {
     Q13_elt r = result[0];

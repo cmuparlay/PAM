@@ -22,7 +22,7 @@ struct basic_node {
   using allocator = parlay::type_allocator<node>;
 
   static node_size_t size(node* a) {
-    return (a == NULL) ? 0 : a->s;
+    return (a == nullptr) ? 0 : a->s;
   }
   
   static void update(node* a) {
@@ -39,7 +39,7 @@ struct basic_node {
 
   static node* single(ET e) {
     node* r = make_node(e);
-    r->lc = r->rc = NULL; r->s = 1;
+    r->lc = r->rc = nullptr; r->s = 1;
     return r;
   }
 
@@ -48,7 +48,7 @@ struct basic_node {
     allocator::free(a);
   }
 
-  static node* empty() {return NULL;}
+  static node* empty() {return nullptr;}
   inline static ET& get_entry(node *a) {return a->entry;}
   inline static ET* get_entry_p(node *a) {return &(a->entry);}
   static void set_entry(node *a, ET e) {a->entry = e;}

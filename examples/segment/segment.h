@@ -11,7 +11,7 @@ timer init_tm, build_tm, total_tm, aug_tm, sort_tm, reserve_tm, outmost_tm, glob
 
 template<typename T>
 void shuffle(parlay::sequence<T> &v) {
-  srand(unsigned(time(NULL)));
+  srand(unsigned(time(nullptr)));
   int n = v.size();
   for (size_t i = 0; i < n; ++i) {
     size_t j = rand() % (n-i);

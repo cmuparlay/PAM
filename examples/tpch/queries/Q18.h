@@ -16,19 +16,19 @@ Q18_rtype Q18(maps m, int q_quantity) {
     Customer& c = ce.second.first;
     order_map& omap = ce.second.second;
     auto order_f = [&] (order_map::E& oe) -> r_seq {
-      li_map& lmap = oe.second.second;
+      line_item_set& lmap = oe.second.second;
       Orders& o = oe.second.first;
-      auto line_f = [&] (li_map::E& e) -> int {return e.quantity();};
-      int v = li_map::map_reduce(lmap, line_f, Add<int>());
+      auto line_f = [&] (line_item_set::E& e) -> int {return e.quantity();};
+      int v = line_item_set::map_reduce(lmap, line_f, Add<int>());
       if (v > q_quantity)
-	return r_seq({elt(c.name(), c.custkey, o.orderkey,
-			  o.orderdate, o.totalprice, v)}); 
+	return r_seq({elt(c.name(), c.custkey, o.order_key,
+			  o.order_date, o.total_price, v)}); 
       else return r_seq();
     };
     return order_map::map_reduce(omap, order_f, Join());
   };
 
-  r_seq result = customer_map::map_reduce(m.cm, cust_f, Join(), 10);
+  r_seq result = customer_map::map_reduce(m.orders_for_customer, cust_f, Join(), 10);
   sequence<elt> r2 = r_seq::entries(result);
 
   auto less = [] (elt a, elt b) {
@@ -53,7 +53,7 @@ double Q18time(maps m, bool verbose) {
 	 << get<3>(a) << ", " << get<4>(a) << ", " << get<5>(a) << endl;
   }
 
-  if (query_out) cout << "Q18 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q18 : " << ret_tm << endl;
   return ret_tm;
 }
 

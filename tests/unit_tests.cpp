@@ -324,7 +324,7 @@ void test_map_more() {
   { // map_filter test
     parlay::sequence<elt> a = {elt(2,4), elt(4,5), elt(6,8), elt(9,1), elt(12, 2)};
     auto f = [&] (elt a) {
-      return (a.first > 4) ? std::optional<int>{2*a.second} : std::nullopt;
+      return (a.first > 4) ? std::optional<int>{2*a.second} : std::nullptropt;
     };
     map ma(a);
     map mb = map::map_filter(ma,f);

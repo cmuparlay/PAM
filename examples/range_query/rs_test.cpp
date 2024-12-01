@@ -22,7 +22,7 @@
 #include "range_sweep.h"
 
 int str_to_int(char* str) {
-  return strtol(str, NULL, 10);
+  return strtol(str, nullptr, 10);
 }
 
 void reset_timers() {

@@ -18,7 +18,7 @@
 using namespace std;
 
 long str_to_long(char* str) {
-    return strtol(str, NULL, 10);
+    return strtol(str, nullptr, 10);
 }
 
 using post_elt = inv_index::post_elt;

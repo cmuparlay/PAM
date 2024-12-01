@@ -21,11 +21,11 @@ Q2_rtype Q2(maps m, unsigned int rid, int size, char* type) {
       // for each supplier in correct region return ps cost
       auto supp_cost = [&] (s_map::E& se) -> float {
 	//Supplier& s = se.second.first.second;
-	dkey_t suppkey = se.second.first.suppkey;
+	dkey_t suppkey = se.second.first.supplier_key;
 	Supplier& s = static_data.all_supp[suppkey];
 	if (nations[s.nationkey].regionkey == rid) {
 	  //return get_ps_cost(key_pair(p.partkey, s.suppkey));
-	  return se.second.first.supplycost;
+	  return se.second.first.supply_cost;
 	}
 	else return 1e10;
       };
@@ -35,10 +35,10 @@ Q2_rtype Q2(maps m, unsigned int rid, int size, char* type) {
       // for each supplier in correct region check if cheapest
       auto supp_f = [&] (s_map::E& se) -> bool {
 	//Supplier& s = se.second.first.second;
-	dkey_t suppkey = se.second.first.suppkey;
+	dkey_t suppkey = se.second.first.supplier_key;
 	Supplier& s = static_data.all_supp[suppkey];
 	return (nations[s.nationkey].regionkey == rid &&
-		se.second.first.supplycost == min_cost);
+		se.second.first.supply_cost == min_cost);
       };
 
       // filter those in correct region that equal cheapest
@@ -48,13 +48,13 @@ Q2_rtype Q2(maps m, unsigned int rid, int size, char* type) {
     } else return optional<ps_map::V>();
   };
   
-  ps_map x = ps_map::map_filter(m.psm2, part_f, 10);
+  ps_map x = ps_map::map_filter(m.suppliers_for_part, part_f, 10);
   using elt = Q2_elt;
 
   // selected values
   auto ps_f = [&] (ps_map::E pe, s_map::E se) -> elt {
     Part p = pe.second.first;
-    dkey_t suppkey = se.second.first.suppkey;
+    dkey_t suppkey = se.second.first.supplier_key;
     Supplier s = static_data.all_supp[suppkey];
     char* n_name = nations[s.nationkey].name;
     //s.acctbal
@@ -91,7 +91,7 @@ double Q2time(maps m, bool verbose) {
   //cout << result.size() << endl;
   
   double ret_tm = t.stop();
-  if (query_out) cout << "Q2 : " << ret_tm << endl;  
+  if (QUERY_OUT) cout << "Q2 : " << ret_tm << endl;  
 
   if (verbose) {
     Q2_elt r = result[0];

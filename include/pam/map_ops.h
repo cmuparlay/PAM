@@ -28,7 +28,7 @@ struct map_ops : Seq {
       else if (Entry::comp(get_key(b), key)) b = b->rc;
       else return b;
     }
-    return NULL;
+    return nullptr;
   }
   
   template <class BinaryOp>
@@ -51,7 +51,7 @@ struct map_ops : Seq {
   }*/
   
   static node* previous(node* b, const K& key) {
-    node* r = NULL;
+    node* r = nullptr;
     while (b) {
       if (Entry::comp(get_key(b), key)) {r = b; b = b->rc;}
       else b = b->lc;
@@ -60,7 +60,7 @@ struct map_ops : Seq {
   }
 
   static node* next(node* b, const K& key) {
-    node* r = NULL;
+    node* r = nullptr;
     while (b) {
       if (Entry::comp(key, get_key(b)) ) {r = b; b = b->lc;}
       else b = b->rc;
@@ -88,7 +88,7 @@ struct map_ops : Seq {
   };
 
   static split_info split_copy(node* bst, const K& e) {
-    if (!bst) return split_info(NULL, NULL, false);
+    if (!bst) return split_info(nullptr, nullptr, false);
 
     else if (Entry::comp(get_key(bst), e)) {
       // following should be a copy ????
@@ -116,7 +116,7 @@ struct map_ops : Seq {
   // A version that will reuse a node if ref count is 1
   // Will decrement ref count of root if it is copied
   static split_info split_inplace(node* bst, const K& e) {
-    if (!bst) return split_info(NULL, NULL, false);
+    if (!bst) return split_info(nullptr, nullptr, false);
     else if (bst->ref_cnt > 1) {
 		//std::cout << "rc>1" << std::endl;
       split_info ret = split_copy(bst, e);
@@ -206,8 +206,8 @@ struct map_ops : Seq {
 			 const BinaryOp& op,
 			 bool extra_b2 = false) {
 	//std::cout << "size: " << n1 << " " << n2 << std::endl;
-    if (!b1) {if (!extra_b2) Seq2::GC::decrement_recursive(b2); return NULL;}
-    if (!b2) {Seq1::GC::decrement_recursive(b1); return NULL;}
+    if (!b1) {if (!extra_b2) Seq2::GC::decrement_recursive(b2); return nullptr;}
+    if (!b2) {Seq1::GC::decrement_recursive(b1); return nullptr;}
     size_t n1 = Seq1::size(b1);   size_t n2 = Seq2::size(b2);
     bool copy = extra_b2 || (b2->ref_cnt > 1);
     typename Seq1::split_info bsts = Seq1::split(b1, Seq2::get_key(b2));
@@ -233,7 +233,7 @@ struct map_ops : Seq {
   }
 
   static node* difference(node* b1, node* b2, bool extra_b1 = false) {
-    if (!b1) {GC::decrement_recursive(b2); return NULL;}
+    if (!b1) {GC::decrement_recursive(b2); return nullptr;}
     if (!b2) return GC::inc_if(b1, extra_b1);
     size_t n1 = Seq::size(b1);   size_t n2 = Seq::size(b2);
     bool copy = extra_b1 || (b1->ref_cnt > 1);
@@ -261,7 +261,7 @@ struct map_ops : Seq {
   }
 
   static node* left(node* b, const K& e) {
-    if (!b) return NULL;
+    if (!b) return nullptr;
     if (Entry::comp(e, get_key(b))) return left(b->lc, e);
     node* r = Seq::make_node(Seq::get_entry(b));
     GC::increment(b->lc);
@@ -269,7 +269,7 @@ struct map_ops : Seq {
   }
 
   static node* right(node* b, const K& e) {
-    if (!b) return NULL;
+    if (!b) return nullptr;
     if (Entry::comp(get_key(b), e)) return right(b->rc, e);
     node* r = Seq::make_node(Seq::get_entry(b));
     GC::increment(b->rc);
@@ -278,14 +278,14 @@ struct map_ops : Seq {
 
   static node* range(node* b, const K& low, const K& high) {
     node* r = range_root(b, low, high);
-    if (!r) return NULL;
+    if (!r) return nullptr;
     node* rr = Seq::make_node(Seq::get_entry(r));
     return Seq::node_join(right(r->lc, low), left(r->rc, high), rr);
   }
   
   static node* left_number(node* b, size_t rg) {
-	  if (!b) return NULL;
-	  if (rg == 0) return NULL;
+	  if (!b) return nullptr;
+	  if (rg == 0) return nullptr;
 	  if (Seq::size(b) <= rg) {
 		  GC::increment(b); return b;
 	  }//?
@@ -305,7 +305,7 @@ struct map_ops : Seq {
       if (Entry::comp(get_key(b), low)) { b = b->rc; continue; }
       break;
     }
-	if (!b) return NULL;
+	if (!b) return nullptr;
 	node* ltree = range_num(b->lc, low, rg);
 	size_t x = Seq::size(ltree);
 	if (x == rg) return ltree;
@@ -478,7 +478,7 @@ struct map_ops : Seq {
   static node* multi_delete_sorted(node* b, K* A, size_t n,
 				   bool extra_ptr = false) {
     if (!b) {
-		return NULL;
+		return nullptr;
 	}
     if (n == 0) return GC::inc_if(b, extra_ptr);
 
@@ -546,7 +546,7 @@ struct map_ops : Seq {
   template <class VE, class BinaryOp>
   static node* multi_update_sorted(node* b, std::pair<K, VE>* A, size_t n,
 				   const BinaryOp& op, bool extra_ptr = false) {
-	if (!b) return NULL;
+	if (!b) return nullptr;
     if (n == 0) return GC::inc_if(b, extra_ptr);
     bool copy = extra_ptr || (b->ref_cnt > 1);
     K bk = get_key(b);

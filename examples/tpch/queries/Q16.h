@@ -12,7 +12,7 @@ Q16_rtype Q16(maps m,
 
   // part number and part count
   using rtype = pair<dkey_t, int>;
-  part_to_supp_map& psim = m.psm2;
+  part_to_supp_map& psim = m.suppliers_for_part;
 
   // hash table for parts kept by brand, type and size,
   // and with integer count
@@ -81,11 +81,11 @@ Q16_rtype Q16(maps m,
     // count suppliers with no customer complaints
     auto map_supp = [&] (part_supp_and_item_map::E& e) -> int {
       //Supplier& s = e.second.first;
-  	  dkey_t suppkey = e.second.first.suppkey;
+  	  dkey_t suppkey = e.second.first.supplier_key;
 	  Supplier& s = static_data.all_supp[suppkey];
       char* p = strstr(s.comment(), customer);
-      if (p == NULL) return 1;
-      if (strstr(p, complain) == NULL) return 1;
+      if (p == nullptr) return 1;
+      if (strstr(p, complain) == nullptr) return 1;
       else return 0;
     };
     int count = part_supp_and_item_map::map_reduce(e.second.second, map_supp, Add<int>());
@@ -129,7 +129,7 @@ double Q16time(maps m, bool verbose) {
   Q16_rtype result = Q16(m, brand, type, sizes);
 
   double ret_tm = t.stop();
-  if (query_out) cout << "Q16 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q16 : " << ret_tm << endl;
   
   if (verbose) {
     Q16_elt r = result[0];

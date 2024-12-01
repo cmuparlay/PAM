@@ -5,7 +5,7 @@ using Q15_rtype = parlay::sequence<Q15_elt>;
 Q15_rtype Q15(maps m,
 	      const char* start_date,
 	      const char* end_date) {
-  ship_map& sm = m.sm;
+  ship_map& sm = m.shipments_for_date;
   ship_map ship_range = ship_map::range(sm,
 					Date(start_date),
 					Date(end_date));
@@ -14,9 +14,9 @@ Q15_rtype Q15(maps m,
   using sr_type = pair<dkey_t, ftype>;
   //using sr_type = pair<dkey_t, float>;
   
-  auto map_lineitems = [&] (li_map::E& e) -> sr_type {
+  auto map_lineitems = [&] (line_item_set::E& e) -> sr_type {
     ftype v = (ftype) e.e_price*(1 - e.discount.val());
-    return make_pair(e.suppkey, v);
+    return make_pair(e.supplier_key, v);
   };
 
   parlay::sequence<sr_type> elts = flatten<sr_type>(ship_range, map_lineitems);  
@@ -51,7 +51,7 @@ double Q15time(maps m, bool verbose) {
 
   Q15_rtype result = Q15(m, start, end);
   double ret_tm = t.stop();
-  if (query_out) cout << "Q15 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q15 : " << ret_tm << endl;
   
   if (verbose) {
     Q15_elt r = result[0];
