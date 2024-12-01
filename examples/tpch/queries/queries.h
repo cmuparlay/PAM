@@ -94,7 +94,7 @@ query_timings exe_query(bool verbose)
 	query_timings timings;
 
 	size_t round = 0;
-	for (; round <= RPT && finish.load(); round++)
+	for (; round <= RPT && !finish.load(); round++)
 	{
 		std::cout << "Round " << round << endl;
 
