@@ -1,11 +1,11 @@
 // mkt_share for two years: 1995 and 1996
-using Q8_rtype = pair<float, float>;
+using Q8_rtype = pair<double, double>;
 
 Q8_rtype Q8(maps m, const size_t regionk, const size_t nationk,
 	    const char* type) {
-  using float_pair = pair<float,float>;
-  using sums = pair<float_pair, float_pair>;
-  using AddD = Add<float>;
+  using double_pair = pair<double,double>;
+  using sums = pair<double_pair, double_pair>;
+  using AddD = Add<double>;
   using AddP = Add_Pair<AddD,AddD>; // adds pairs of doubles
   using AddPP = Add_Pair<AddP,AddP>;  // adds pairs of pairs of doubles
   sums identity = AddPP::identity();
@@ -50,9 +50,9 @@ Q8_rtype Q8(maps m, const size_t regionk, const size_t nationk,
 	auto item_f = [&] (sums& pp, line_item_set::E& l) {
 	  int oy = order_year[l.order_key] + Date::start_year;
 	  if (oy == 1995 || oy == 1996) {
-	    float rev = l.e_price * (1.0 - l.discount.val());
-	    float_pair p = ((s.nationkey == nationk) ? float_pair(rev,rev)
-			    : float_pair(0.0,rev));
+	    double rev = l.e_price * (1.0 - l.discount.val());
+	    double_pair p = ((s.nationkey == nationk) ? double_pair(rev,rev)
+			    : double_pair(0.0,rev));
 	    if (oy == 1995) pp.first = AddP::add(pp.first, p);
 	    else pp.second = AddP::add(pp.second, p);
 	  }
@@ -92,9 +92,9 @@ Q8_rtype Q8_(maps m, const size_t regionk, const size_t nationk, const char* typ
   const char start[] = "1995-01-01";
   const char end[] = "1996-12-31";
 
-  using float_pair = pair<float,float>;
-  using sums = pair<float_pair, float_pair>;
-  using AddD = Add<float>;
+  using double_pair = pair<double,double>;
+  using sums = pair<double_pair, double_pair>;
+  using AddD = Add<double>;
   using AddP = Add_Pair<AddD,AddD>; // adds pairs of doubles
   using AddPP = Add_Pair<AddP,AddP>;  // adds pairs of pairs of doubles
   sums identity = AddPP::identity();
@@ -111,7 +111,7 @@ Q8_rtype Q8_(maps m, const size_t regionk, const size_t nationk, const char* typ
 		Date d = o.order_date;
 		if (Date::less(Date(start),d) && Date::less(d, Date(end))) {
 			auto item_f = [&] (line_item_set::E& l) -> sums {
-				float rev = 0.0;
+				double rev = 0.0;
 				dkey_t suppkey = l.supplier_key;
 				dkey_t partkey = l.part_key;
 				Supplier& supp = static_data.all_supp[suppkey];
@@ -119,10 +119,10 @@ Q8_rtype Q8_(maps m, const size_t regionk, const size_t nationk, const char* typ
 				char* x = part.type();
 				if (strcmp(type, x) == 0) {
 					rev = l.e_price * (1.0 - l.discount.val());
-					float_pair p = ((supp.nationkey == nationk) ? float_pair(rev,rev)
-					  : float_pair(0.0,rev));
-					if (d.year() == 1995) return sums(p, float_pair(0.0,0.0));
-					else return sums(float_pair(0.0,0.0), p);
+					double_pair p = ((supp.nationkey == nationk) ? double_pair(rev,rev)
+					  : double_pair(0.0,rev));
+					if (d.year() == 1995) return sums(p, double_pair(0.0,0.0));
+					else return sums(double_pair(0.0,0.0), p);
 				} else return identity;
 			};
 			return line_item_set::map_reduce(items, item_f, AddPP());
@@ -143,9 +143,9 @@ Q8_rtype Q8__(maps m, const size_t regionk, const size_t nationk, const char* ty
   Date sdate = Date(start);
   Date edate = Date(end);
 
-  using float_pair = pair<float,float>;
-  using sums = pair<float_pair, float_pair>;
-  using AddD = Add<float>;
+  using double_pair = pair<double,double>;
+  using sums = pair<double_pair, double_pair>;
+  using AddD = Add<double>;
   using AddP = Add_Pair<AddD,AddD>; // adds pairs of doubles
   using AddPP = Add_Pair<AddP,AddP>;  // adds pairs of pairs of doubles
   sums identity = AddPP::identity();
@@ -168,7 +168,7 @@ Q8_rtype Q8__(maps m, const size_t regionk, const size_t nationk, const char* ty
 		Date d = o.order_date;
 		if (if_region[o.customer_key]) {
 			auto item_f = [&] (line_item_set::E& l) -> sums {
-				float rev = 0.0;
+				double rev = 0.0;
 				dkey_t suppkey = l.supplier_key;
 				dkey_t partkey = l.part_key;
 				Supplier& supp = static_data.all_supp[suppkey];
@@ -176,10 +176,10 @@ Q8_rtype Q8__(maps m, const size_t regionk, const size_t nationk, const char* ty
 				char* x = part.type();
 				if (strcmp(type, x) == 0) {
 					rev = l.e_price * (1.0 - l.discount.val());
-					float_pair p = ((supp.nationkey == nationk) ? float_pair(rev,rev)
-					  : float_pair(0.0,rev));
-					if (d.year() == 1995) return sums(p, float_pair(0.0,0.0));
-					else return sums(float_pair(0.0,0.0), p);
+					double_pair p = ((supp.nationkey == nationk) ? double_pair(rev,rev)
+					  : double_pair(0.0,rev));
+					if (d.year() == 1995) return sums(p, double_pair(0.0,0.0));
+					else return sums(double_pair(0.0,0.0), p);
 				} else return identity;
 			};
 			return line_item_set::map_reduce(items, item_f, AddPP());
@@ -197,9 +197,9 @@ Q8_rtype Q8___(maps m, const size_t regionk, const size_t nationk, const char* t
   const char start[] = "1995-01-01";
   const char end[] = "1996-12-31";
 
-  using float_pair = pair<float,float>;
-  using sums = pair<float_pair, float_pair>;
-  using AddD = Add<float>;
+  using double_pair = pair<double,double>;
+  using sums = pair<double_pair, double_pair>;
+  using AddD = Add<double>;
   using AddP = Add_Pair<AddD,AddD>; // adds pairs of doubles
   using AddPP = Add_Pair<AddP,AddP>;  // adds pairs of pairs of doubles
   sums identity = AddPP::identity();
@@ -238,7 +238,7 @@ Q8_rtype Q8___(maps m, const size_t regionk, const size_t nationk, const char* t
 
 	// for each lineitem of the part
 	auto item_f = [&] (sums& pp, line_item_set::E& l) {
-	  float rev = 0.0;
+	  double rev = 0.0;
 
 	  // find the order from lineitem 
 	  Orders o = (*(m.line_items_for_order.find(l.order_key))).first;
@@ -259,8 +259,8 @@ Q8_rtype Q8___(maps m, const size_t regionk, const size_t nationk, const char* t
 	      rev = l.e_price * (1.0 - l.discount.val());
 
 	      // check that supplier of lineitem from correct nation
-	      float_pair p = ((supp.nationkey == nationk) ? float_pair(rev,rev)
-			      : float_pair(0.0,rev));
+	      double_pair p = ((supp.nationkey == nationk) ? double_pair(rev,rev)
+			      : double_pair(0.0,rev));
 	      if (year == 1995) pp.first = AddP::add(pp.first, p);
 	      else pp.second = AddP::add(pp.second, p);
 	    }

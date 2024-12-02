@@ -12,7 +12,7 @@ Q15_rtype Q15(maps m,
 
   using ftype = double;
   using sr_type = pair<dkey_t, ftype>;
-  //using sr_type = pair<dkey_t, float>;
+  //using sr_type = pair<dkey_t, double>;
   
   auto map_lineitems = [&] (line_item_set::E& e) -> sr_type {
     ftype v = (ftype) e.e_price*(1 - e.discount.val());

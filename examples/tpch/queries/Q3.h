@@ -1,5 +1,5 @@
 // order_key, ship_priority, order_date, revenue
-using Q3_relt = tuple<dkey_t, int, Date, float>;
+using Q3_relt = tuple<dkey_t, int, Date, double>;
 using Q3_rtype = sequence<Q3_relt>;
 
 Q3_rtype Q3(maps m, char* seg, Date date) {
@@ -30,7 +30,7 @@ Q3_rtype Q3(maps m, char* seg, Date date) {
 	      return l.e_price * (1.0 - l.discount.val());
 	    else return 0.0; };
 	  line_item_set& lm = o.second.second;
-	  float revenue = line_item_set::map_reduce(lm, lineitem_f, Add<float>());
+	  double revenue = line_item_set::map_reduce(lm, lineitem_f, Add<double>());
 	  if (revenue > 0.0)
 	    return result_list({Q3_relt(ord.order_key,
 					ord.shipment_priority,

@@ -1,7 +1,7 @@
 using Q22_relt = pair<int,double>;
 using Q22_rtype = parlay::sequence<Q22_relt>;
 
-using Q22_a_type = tuple<float, uchar, bool>;
+using Q22_a_type = tuple<double, uchar, bool>;
 
 
 //template<typename Monoid>
@@ -38,7 +38,7 @@ Q22_rtype Q22(maps m, bool verbose, uchar* countrycode) {
   };
 
   // c_acctbal, countrycode, size = 0
-  using a_type = tuple<float, uchar, bool>;
+  using a_type = tuple<double, uchar, bool>;
   parlay::sequence<a_type> res(m.orders_for_customer.size());
 
   // write info to a sequence
@@ -56,15 +56,15 @@ Q22_rtype Q22(maps m, bool verbose, uchar* countrycode) {
   parlay::sequence<a_type> a = parlay::filter(res, is_country);
 
   // find average non-zero balance
-  using fip = pair<float, int>;
+  using fip = pair<double, int>;
   fip empty(0.0, 0);
   auto map_bal = [&] (size_t i) -> fip {
-    float balance = get<0>(a[i]);
+    double balance = get<0>(a[i]);
     return (balance > epsilon) ? fip(balance, 1) : fip(0.0, 0);
   };
   auto vals = parlay::delayed_seq<fip>(a.size(), map_bal);
-  fip ave = parlay::reduce(vals, parlay::pair_monoid(addm<float>(), addm<int>()));
-  float avebal = ave.first / ((float) ave.second);
+  fip ave = parlay::reduce(vals, parlay::pair_monoid(addm<double>(), addm<int>()));
+  double avebal = ave.first / ((double) ave.second);
 
   // only keep if balance above average, and no orders
   auto keep = [=] (a_type x) -> bool {

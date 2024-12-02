@@ -1,5 +1,5 @@
 double Q6(maps m, const char* start_date, const char* end_date,
-	  float discount, int quantity) {
+	  double discount, int quantity) {
   ship_map sm = m.shipments_for_date;
   ship_map ship_range = ship_map::range(sm, Date(start_date), Date(end_date));
 
@@ -24,7 +24,7 @@ double Q6time(maps m, bool verbose) {
   t.start();
   const char start[] = "1994-01-01";
   const char end[] = "1994-12-31";
-  const float discount = .06;
+  const double discount = .06;
   const int quantity = 24;
 
   double result = Q6(m, start, end, discount, quantity);

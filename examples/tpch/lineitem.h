@@ -209,7 +209,7 @@ struct lineitem_flags
 using dkey_t = uint;
 using linenumber_t = uchar;
 using quantity_t = uchar;
-using price_t = float;
+using price_t = double;
 
 void check_length(const Line &S, size_t len)
 {
@@ -314,7 +314,7 @@ struct Customer
 {
   dkey_t custkey;
   dkey_t nationkey;
-  float acctbal;
+  double acctbal;
   char *strings;
   Customer() : strings(nullptr) {}
   Customer(Line const &S)
@@ -346,7 +346,7 @@ struct Supplier
 {
   dkey_t suppkey;
   char *strings;
-  float acctbal;
+  double acctbal;
   dkey_t nationkey;
   Supplier() : strings(nullptr) {}
   Supplier(Line const &S)
@@ -399,7 +399,7 @@ struct Part
 {
   dkey_t partkey;
   int size;
-  float retailprice;
+  double retailprice;
   char *strings;
   char brandstr[16]; // testing
   Part() : strings(nullptr) {}

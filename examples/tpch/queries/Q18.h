@@ -1,5 +1,5 @@
 // c_name, c_custkey, o_orderkey, o_orderdate, o_totalprice, sum(quant)
-using Q18_elt = tuple<char*, dkey_t, dkey_t, Date, float, int>;
+using Q18_elt = tuple<char*, dkey_t, dkey_t, Date, double, int>;
 using Q18_rtype = sequence<Q18_elt>;
 
 Q18_rtype Q18(maps m, int q_quantity) {
