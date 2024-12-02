@@ -28,8 +28,8 @@ Q19_rtype Q19(maps m, bool verbose, const int* quantity, const char** brand) {
 	  && streq(p.brand(), brand)
 	  && (is_in(p.container(), containers, 4))) {
 	auto g = [&] (part_supp_and_item_map::E& s) -> double {
-	  li_map& li = s.second.second;
-	  auto h = [&] (Lineitem& l) -> double {
+	  line_item_set& li = s.second.second;
+	  auto h = [&] (LineItem& l) -> double {
 	    if ((l.quantity() >= quantity) &&
 		(l.quantity() <= (quantity + 10)) &&
 		(l.shipinstruct() == 'D') &&
@@ -37,7 +37,7 @@ Q19_rtype Q19(maps m, bool verbose, const int* quantity, const char** brand) {
 	      return  l.e_price*(1 - l.discount.val());
 	    else return 0.0;
 	  };
-	  return li_map::map_reduce(li, h, AddD());
+	  return line_item_set::map_reduce(li, h, AddD());
 	};
 	return part_supp_and_item_map::map_reduce(si, g, AddD(), 10);
       } else return 0.0;
@@ -49,7 +49,7 @@ Q19_rtype Q19(maps m, bool verbose, const int* quantity, const char** brand) {
     return total;
   };
   
-  double result = part_to_supp_map::map_reduce(m.psm2, f, AddD(), 1);
+  double result = part_to_supp_map::map_reduce(m.suppliers_for_part, f, AddD(), 1);
   return result;
 }
 
@@ -65,7 +65,7 @@ double Q19time(maps m, bool verbose) {
 	 << result << endl;
   }
   double ret_tm = t_q19.stop();
-  if (query_out) cout << "Q19 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q19 : " << ret_tm << endl;
   return ret_tm;
 }  
   

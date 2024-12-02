@@ -26,7 +26,7 @@ struct aug_node : basic_node<balance, std::pair<typename Entry::entry_t,
   static void set_entry(node *a, ET e) {a->entry.first = e;}
 
   static AT aug_val(node* a) {
-    if (a == NULL) return Entry::get_empty();
+    if (a == nullptr) return Entry::get_empty();
     else return (a->entry).second;}
   
   static void update(node* a) {

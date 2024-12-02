@@ -11,7 +11,7 @@ using namespace std;
 struct entry {
   using key_t = int;
   using val_t = int;
-  using aug_t = float;
+  using aug_t = double;
   static inline bool comp(key_t a, key_t b) { return a < b;}
   static aug_t get_empty() { return 0;}
   static aug_t from_entry(key_t k , val_t v) { return v/2.0;}
@@ -22,7 +22,7 @@ struct entry {
 
 struct entry_max {
   using key_t = int;
-  using val_t = float;
+  using val_t = double;
   using aug_t = int;
   static inline bool comp(key_t a, key_t b) { return a < b;}
   static aug_t get_empty() { return 0;}
@@ -45,7 +45,7 @@ struct entry3 {
 using elt = pair<int,int>;
 using map  = aug_map<entry>;
 
-using eltm = pair<int,float>;
+using eltm = pair<int,double>;
 using map_max = aug_map<entry_max>;
 
 using elt2 = pair<int, bool>;
@@ -67,7 +67,7 @@ void test_aug() {
 	       eltm(9, 1.0), eltm(11, 12.0)};
 
   map_max ma(a,a+5);
-  auto gt = [] (float x) {return x > 7.0;};
+  auto gt = [] (double x) {return x > 7.0;};
   map_max mb = map_max::aug_filter(ma, gt);
   check(mb.size() == 2, "aug_filter size check");
   check(ma.size() == 5, "aug_filter size check 2");
@@ -196,7 +196,7 @@ void test_map(int balance_type) {
   check(mc.contains(6), "find check after diff 6");
   check(!mc.find(4), "find check after diff 4");
 
-  auto g = [] (pair<int,int> e) -> float {return e.second + 1.0;};
+  auto g = [] (pair<int,int> e) -> double {return e.second + 1.0;};
 
   map_max mx = map_max::map(mc, g);
   // mx == {eltm(2,5.0), eltm(6,14.0), eltm(9,12.0)};
@@ -412,8 +412,8 @@ void test_intervals() {
     
     struct entry_t {
       using key_t = int;
-      using val_t = float;
-      using aug_t = float;
+      using val_t = double;
+      using aug_t = double;
       static inline bool comp(key_t a, key_t b) { return a < b;}
       static aug_t get_empty() { return 0.0;}
       static aug_t from_entry(key_t k, val_t v) { return v;}
@@ -425,12 +425,12 @@ void test_intervals() {
     amap m;
 
     void insert(int left, int right, int w) {
-      auto add = [&] (float a, float b) {return a + b;};
+      auto add = [&] (double a, double b) {return a + b;};
       m = amap::insert(m, make_pair(left, w), add);
       m = amap::insert(m, make_pair(right, -w), add);
     }
 
-    float stab(int loc) {return m.aug_left(loc);}
+    double stab(int loc) {return m.aug_left(loc);}
   };
 
   intervals im;

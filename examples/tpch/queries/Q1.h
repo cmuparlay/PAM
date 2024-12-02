@@ -7,12 +7,12 @@ using Q1_row = array<double, num_vals>;
 using Q1_rtype = array<Q1_row, num_rows>;
 
 Q1_rtype Q1(maps m, const char* end_date) {
-  ship_map ship_range = ship_map::upTo(m.sm, Date(end_date));
+  ship_map ship_range = ship_map::upTo(m.shipments_for_date, Date(end_date));
 
   using Add = Add_Nested_Array<Q1_rtype>;
 
   auto date_f = [] (ship_map::E& e) -> Q1_rtype {
-    auto li_f = [] (Q1_rtype& a, Lineitem& l) {
+    auto li_f = [] (Q1_rtype& a, LineItem& l) {
       int row =(l.flags.as_int() & 7);
       double quantity = l.quantity();
       double price = l.e_price;
@@ -26,7 +26,7 @@ Q1_rtype Q1(maps m, const char* end_date) {
       a[row][4] += disc;
       a[row][5] += 1.0;
     };
-    return li_map::semi_map_reduce(e.second, li_f, Add(), 2000);
+    return line_item_set::semi_map_reduce(e.second, li_f, Add(), 2000);
   };
 
   return ship_map::map_reduce(ship_range, date_f, Add(), 1);
@@ -40,7 +40,7 @@ double Q1time(maps m, bool verbose) {
   Q1_rtype result = Q1(m, end_date);
 
   double ret_tm = t.stop();
-  if (query_out) cout << "Q1 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q1 : " << ret_tm << endl;
 
   if (verbose) {
     cout << "Q1:" << endl;

@@ -1,17 +1,17 @@
 using Q21kip = pair<dkey_t, int>;
   
 sequence<Q21kip> Q21(maps m, bool verbose, dkey_t q_nation) {
-  supp_to_part_map spm = m.spm2;
-  size_t max_order_key = (*(m.om.last())).first;
+  supp_to_part_map spm = m.parts_for_supplier;
+  size_t max_order_key = (*(m.line_items_for_order.last())).first;
   //size_t max_order_key = CURR_ORDER;
   //cout << "max_order_key: " << max_order_key << endl;
 
-  sequence<li_map*> olines(max_order_key+1, (li_map*) NULL);
+  sequence<line_item_set*> olines(max_order_key+1, (line_item_set*) nullptr);
   auto order_f = [&] (order_map::E& oe, size_t i) {
     if (oe.second.first.status == 'F')
       olines[oe.first] = &oe.second.second;
   };
-  order_map::map_index(m.om, order_f);
+  order_map::map_index(m.line_items_for_order, order_f);
   
   sequence<pair<dkey_t, int>> res(SUPPLIER_NUM+1);
   auto o_map_f = [&] (supp_to_part_map::E& e, size_t i) {
@@ -21,23 +21,23 @@ sequence<Q21kip> Q21(maps m, bool verbose, dkey_t q_nation) {
     }
     part_supp_and_item_map& med_map = e.second.second;
     auto m_map_f = [&] (part_supp_and_item_map::E& e) -> int {
-      li_map& inner_map = e.second.second;
-      auto i_map_f = [&] (li_map::E& l1) -> int {
+      line_item_set& inner_map = e.second.second;
+      auto i_map_f = [&] (line_item_set::E& l1) -> int {
 	if (!Date::less(l1.c_date, l1.r_date)) return 0;
-	dkey_t suppkey = l1.suppkey;
+	dkey_t suppkey = l1.supplier_key;
 
-	li_map* a = olines[l1.orderkey];
-	if (a == NULL) return 0;
-	li_map& y = *a; 
-	auto cond1 = [&] (li_map::E l2) {
-	  return (l2.suppkey != suppkey);
+	line_item_set* a = olines[l1.order_key];
+	if (a == nullptr) return 0;
+	line_item_set& y = *a; 
+	auto cond1 = [&] (line_item_set::E l2) {
+	  return (l2.supplier_key != suppkey);
 	};
-	auto cond2 = [&] (li_map::E l3) {
-	  return (l3.suppkey != suppkey && Date::less(l3.c_date, l3.r_date));
+	auto cond2 = [&] (line_item_set::E l3) {
+	  return (l3.supplier_key != suppkey && Date::less(l3.c_date, l3.r_date));
 	};
-	return (li_map::if_exist(y, cond1) && !(li_map::if_exist(y, cond2)));
+	return (line_item_set::if_exist(y, cond1) && !(line_item_set::if_exist(y, cond2)));
       };
-      int v = li_map::map_reduce(inner_map, i_map_f, Add<int>());
+      int v = line_item_set::map_reduce(inner_map, i_map_f, Add<int>());
       return v;
     };
     int v = part_supp_and_item_map::map_reduce(med_map, m_map_f, Add<int>());
@@ -65,6 +65,6 @@ double Q21time(maps m, bool verbose) {
   }  
   
   double ret_tm = t.stop();
-  if (query_out) cout << "Q21: " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q21: " << ret_tm << endl;
   return ret_tm;
 }

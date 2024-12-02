@@ -11,7 +11,7 @@ using parlay::parallel_for;
 
 template<typename T>
 void shuffle(vector<T> v) {
-    srand(unsigned(time(NULL)));
+    srand(unsigned(time(nullptr)));
 	int n = v.size();
     for (size_t i = 0; i < n; ++i) {
         size_t j = rand() % (n-i);

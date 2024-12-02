@@ -111,11 +111,11 @@ struct red_black_tree {
   private:
 
     static int height(node* a) {
-      return (a == NULL) ? 1 : a->height;
+      return (a == nullptr) ? 1 : a->height;
     }
 
     static int color(node* a) {
-      return (a == NULL) ? BLACK : a->color;
+      return (a == nullptr) ? BLACK : a->color;
     }
 
     // a version without rotation 
@@ -129,8 +129,8 @@ struct red_black_tree {
 
     static node* right_join(node* t1, node* t2, node* k) {
 		// if (!t1) {
-			// if (!t2) std::cout << "null and null" << std::endl; else {
-				// std::cout << "null and non-null" << std::endl;
+			// if (!t2) std::cout << "nullptr and nullptr" << std::endl; else {
+				// std::cout << "nullptr and non-nullptr" << std::endl;
 				// std::cout << height(t1) << " " << height(t2) << std::endl;
 			// }
 		// }
@@ -151,8 +151,8 @@ struct red_black_tree {
 
     static node* left_join(node* t1, node* t2, node* k) {
 		// if (!t2) {
-			// if (!t1) std::cout << "null and null" << std::endl; else {
-				// std::cout << "null and non-null" << std::endl;
+			// if (!t1) std::cout << "nullptr and nullptr" << std::endl; else {
+				// std::cout << "nullptr and non-nullptr" << std::endl;
 				// std::cout << height(t1) << " " << height(t2) << std::endl;
 			// }
 		// }

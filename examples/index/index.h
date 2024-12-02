@@ -4,14 +4,14 @@
 
 #include <pam/pam.h>
 
-auto add = [] (float a, float b) -> float {
+auto add = [] (double a, double b) -> double {
     return a + b;};
 
 using token = parlay::sequence<char>;
 
 struct inv_index {
   using doc_id = int;
-  using weight = float;
+  using weight = double;
 
   using post_elt = pair<doc_id, weight>;
 

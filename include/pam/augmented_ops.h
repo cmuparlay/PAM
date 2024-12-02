@@ -71,7 +71,7 @@ struct augmented_ops : Map {
 
   template<typename Func>
   static node* aug_select(node* b, const Func& f) {
-    if (b == NULL) return NULL;
+    if (b == nullptr) return nullptr;
     if (f(aug_val(b->lc))) {
       if (f(Entry::from_entry(Map::get_entry(b))))
 	return aug_select(b->rc, f);
@@ -81,8 +81,8 @@ struct augmented_ops : Map {
 
   template<class Func>
   static node* aug_filter(node* b, const Func& f, bool extra_ptr = false) {
-    if (!b) return NULL;
-    if (!f(aug_val(b))) return NULL;
+    if (!b) return nullptr;
+    if (!f(aug_val(b))) return nullptr;
     bool copy = extra_ptr || (b->ref_cnt > 1);
     
     auto P = utils::fork<node*>(Map::size(b) >= utils::node_limit,

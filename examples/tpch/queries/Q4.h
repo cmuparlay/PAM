@@ -1,7 +1,7 @@
 using Q4_rtype = array<int,6>;
 
 Q4_rtype Q4(maps m, const char* start, const char* end) {
-  o_order_map oom = m.oom;
+  o_order_map oom = m.orders_for_date;
   o_order_map order_range = o_order_map::range(oom, Date(start), Date(end));
 
   using T = Q4_rtype;
@@ -9,10 +9,10 @@ Q4_rtype Q4(maps m, const char* start, const char* end) {
 
   auto date_f = [] (o_order_map::E& d) -> T {
     auto order_f = [] (T& a, order_map::E& o) -> void {
-      auto line_f = [] (Lineitem& e) -> int {
+      auto line_f = [] (LineItem& e) -> int {
 	return Date::less(e.c_date, e.r_date);};
-      int n = li_map::map_reduce(o.second.second, line_f, Add<int>());
-      if (n > 0) a[o.second.first.orderpriority]++;
+      int n = line_item_set::map_reduce(o.second.second, line_f, Add<int>());
+      if (n > 0) a[o.second.first.order_priority]++;
     };
     return order_map::semi_map_reduce(d.second, order_f, H());
   };
@@ -28,7 +28,7 @@ double Q4time(maps m, bool verbose) {
   Q4_rtype result = Q4(m, start, end);
 
   double ret_tm = t.stop();
-  if (query_out) cout << "Q4 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q4 : " << ret_tm << endl;
 
   if (verbose) {
     int count = get<1>(result);

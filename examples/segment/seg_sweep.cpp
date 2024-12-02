@@ -13,7 +13,7 @@
 #include "seg_sweep.h"
 
 int str_to_int(char* str) {
-  return strtol(str, NULL, 10);
+  return strtol(str, nullptr, 10);
 }
 
 void run_all(parlay::sequence<seg_type_2d>& segs,

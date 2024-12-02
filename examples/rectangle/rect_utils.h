@@ -71,7 +71,7 @@ parlay::sequence<rec_type> generate_recs(size_t n, int a, int b) {
   max_x = p1[2*n]; max_y = p2[2*n];
 //  cout << max_x << " " << max_y << endl;
 
-  //srand(unsigned(time(NULL)));
+  //srand(unsigned(time(nullptr)));
   for (size_t i = 0; i < 2*n+1; ++i) {
     size_t j = random_hash('s', i, 0, 2*n+1-i);
     swap(p1[i], p1[i+j]);

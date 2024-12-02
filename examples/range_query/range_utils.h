@@ -1,7 +1,7 @@
 using namespace std;
 
 using data_type = int;
-using weight = float;
+using weight = double;
 
 using parlay::sequence;
 using parlay::tabulate;

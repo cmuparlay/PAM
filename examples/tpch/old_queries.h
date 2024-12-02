@@ -10,14 +10,14 @@ void Q5old(maps m, bool verbose) {
   };
   global_suppm = supp_map::filter(static_data.suppm, f_region);
   int s = m.cm.size();
-  pair<dkey_t,float>* ans = new pair<dkey_t,float>[s];
+  pair<dkey_t,double>* ans = new pair<dkey_t,double>[s];
 
   auto f = [&](customer_map::E& e, size_t i) { // added &
     dkey_t nationid = e.second.first.nationkey;
     if (nations[nationid].regionkey == qregion) {
       order_map om = e.second.second;
 
-      auto from_order = [&] (order_map::E& e) -> float{
+      auto from_order = [&] (order_map::E& e) -> double{
 	Orders ord = e.second.first;
 	if (Date::less(ord.orderdate, ostart) ||
 	    Date::less(oend, ord.orderdate))
@@ -25,18 +25,18 @@ void Q5old(maps m, bool verbose) {
 	else {
 	  li_map& li = e.second.second; // added &
 
-	  auto from_li = [&] (li_map::E& e) -> float { 
+	  auto from_li = [&] (li_map::E& e) -> double { 
 	    dkey_t suppid = e.suppkey;
 	    maybe<Supplier> suppV = global_suppm.find(suppid);
 	    if (!suppV || (*suppV).nationkey != nationid) return 0.0;
 	    else return e.e_price * e.discount.val();
 	  };
 
-	  return li_map::map_reducef(li, from_li, plus_float, 0.0);
+	  return li_map::map_reducef(li, from_li, plus_double, 0.0);
 	}
       };
 
-      float res = order_map::map_reducef(om, from_order, plus_float, 0.0);
+      double res = order_map::map_reducef(om, from_order, plus_double, 0.0);
       ans[i] = make_pair(nationid,res);
     } else ans[i] = make_pair(-1, -1);
   };
@@ -86,12 +86,12 @@ void Q14old(maps m, bool verbose) {
   Date q_date1 = Date("1995-09-01"), q_date2 = Date("1995-10-01");
   ship_map smap = m.sm;
   ship_map s_range = ship_map::range(smap, q_date1, q_date2);
-  auto f_map = [&] (ship_map::E e) -> float {
-	  return li_map::map_reducef(e.second, revenue, plus_float, 0.0, 100);
+  auto f_map = [&] (ship_map::E e) -> double {
+	  return li_map::map_reducef(e.second, revenue, plus_double, 0.0, 100);
   };
-  float total_revenue = ship_map::map_reducef(s_range, f_map, plus_float, 0.0, 1);
+  double total_revenue = ship_map::map_reducef(s_range, f_map, plus_double, 0.0, 1);
   
-  auto p_type_revenue = [&] (li_map::E& l) -> float {
+  auto p_type_revenue = [&] (li_map::E& l) -> double {
 	dkey_t t = l.partkey;
 	maybe<pair<Part, li_map>> st = m.pm.find(t);
 	if (!st) return 0.0;
@@ -101,11 +101,11 @@ void Q14old(maps m, bool verbose) {
 	return 0.0;
   };
   
-  auto f_map2 = [&] (ship_map::E& e) -> float {
-	  return li_map::map_reducef(e.second, p_type_revenue, plus_float, 0.0, 100);
+  auto f_map2 = [&] (ship_map::E& e) -> double {
+	  return li_map::map_reducef(e.second, p_type_revenue, plus_double, 0.0, 100);
   };
   
-  float part_revenue = ship_map::map_reducef(s_range, f_map2, plus_float, 0.0, 1);
+  double part_revenue = ship_map::map_reducef(s_range, f_map2, plus_double, 0.0, 1);
 
   if (verbose) cout << part_revenue << endl;
   if (verbose) cout << part_revenue/total_revenue*100 << endl;

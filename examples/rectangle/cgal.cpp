@@ -6,7 +6,7 @@ typedef CGAL::Range_segment_tree_set_traits_2<K> Traits;
 typedef CGAL::Segment_tree_2<Traits > Segment_tree_2_type;
 
 int str_to_int(char* str) {
-  return strtol(str, NULL, 10);
+  return strtol(str, nullptr, 10);
 }
 
 int win;

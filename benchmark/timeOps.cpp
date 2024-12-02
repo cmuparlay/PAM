@@ -88,7 +88,7 @@ struct mapped {
 };
 
 size_t str_to_int(char* str) {
-  return strtol(str, NULL, 10);
+  return strtol(str, nullptr, 10);
 }
 
 void check(bool test, string message) {

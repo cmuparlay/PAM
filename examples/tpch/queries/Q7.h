@@ -1,8 +1,8 @@
-using pfloat = pair<double,double>;
-using Q7_rtype = pair<pfloat, pfloat>;
+using pdouble = pair<double,double>;
+using Q7_rtype = pair<pdouble, pdouble>;
 
 Q7_rtype Q7(maps m, size_t n1id, size_t n2id) {
-  supp_to_part_map spm = m.spm2;
+  supp_to_part_map spm = m.parts_for_supplier;
   int max_supplier = (*(spm.previous(1000000000))).first;
   sequence<uchar> supplier_nation(max_supplier + 1);
 
@@ -16,26 +16,26 @@ Q7_rtype Q7(maps m, size_t n1id, size_t n2id) {
   using AddD = Add<double>;
   using AddP = Add_Pair<AddD,AddD>; // adds pairs of doubles
   using AddPP = Add_Pair<AddP,AddP>;  // adds pairs of pairs of doubles
-  pfloat id = AddP::identity();
+  pdouble id = AddP::identity();
       
   auto customer_f = [&] (customer_map::E& ce) -> Q7_rtype {
     unsigned int customer_nation = ce.second.first.nationkey;
     order_map& omap = ce.second.second;
-    auto check_nation_pair = [&] (size_t nation_1, size_t nation_2) -> pfloat {
+    auto check_nation_pair = [&] (size_t nation_1, size_t nation_2) -> pdouble {
       if (customer_nation == nation_2) {
-	auto order_f = [&] (order_map::E& oe) -> pfloat {
-	  li_map& li = oe.second.second;
-	  auto li_f = [&] (li_map::E& l) -> pfloat {
-	    Date ship_date = l.s_date;
+	auto order_f = [&] (order_map::E& oe) -> pdouble {
+	  line_item_set& li = oe.second.second;
+	  auto li_f = [&] (line_item_set::E& l) -> pdouble {
+	    Date ship_date = l.ship_date;
 	    double rev = l.e_price*(1-l.discount.val());
 	    int year = ship_date.year();
 	    if ((year == 1995 || year == 1996)
-		&& supplier_nation[l.suppkey] == nation_1) {
-	      if (year == 1995) return pfloat(rev, 0.0);
-	      if (year == 1996) return pfloat(0.0, rev); }
+		&& supplier_nation[l.supplier_key] == nation_1) {
+	      if (year == 1995) return pdouble(rev, 0.0);
+	      if (year == 1996) return pdouble(0.0, rev); }
 	    return id;
 	  };
-	  return li_map::map_reduce(li, li_f, AddP());
+	  return line_item_set::map_reduce(li, li_f, AddP());
 	};
 	return order_map::map_reduce(omap, order_f, AddP());
       }
@@ -45,7 +45,7 @@ Q7_rtype Q7(maps m, size_t n1id, size_t n2id) {
 		    check_nation_pair(n2id, n1id));
   };
 
-  return customer_map::map_reduce(m.cm, customer_f, AddPP());
+  return customer_map::map_reduce(m.orders_for_customer, customer_f, AddPP());
 }
 
 double Q7time(maps m, bool verbose) {
@@ -59,7 +59,7 @@ double Q7time(maps m, bool verbose) {
   Q7_rtype result = Q7(m, n1id, n2id);
 
   double ret_tm = t.stop();
-  if (query_out) cout << "Q7 : " << ret_tm << endl;
+  if (QUERY_OUT) cout << "Q7 : " << ret_tm << endl;
   
   if (verbose) {
     cout << "Q7:" << endl
