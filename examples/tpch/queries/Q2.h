@@ -107,13 +107,11 @@ double Q2time(maps m, bool verbose)
   if (verbose)
   {
     const auto &r = result.front();
-    // for (const auto &r : result.head(5)) {
-      cout << "Q2: " << endl
-          << get<0>(r) << ", " << get<1>(r) << ", "
-          << get<2>(r) << ", " << get<3>(r) << ", "
-          << get<4>(r) << ", " << get<5>(r) << ", "
-          << get<6>(r) << ", " << get<7>(r) << endl;
-    // }
+    cout << "Q2: " << endl
+        << get<0>(r) << ", " << get<1>(r) << ", "
+        << get<2>(r) << ", " << get<3>(r) << ", "
+        << get<4>(r) << ", " << get<5>(r) << ", "
+        << get<6>(r) << ", " << get<7>(r) << endl;
   }
   return ret_tm;
 }
