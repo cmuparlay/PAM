@@ -72,7 +72,7 @@ struct payment_entry
 
 parlay::sequence<payment_entry> generate_payments(int n)
 {
-	return parlay::tabulate(0, [](int i) -> payment_entry
+	return parlay::tabulate(n, [](int i) -> payment_entry
 													{ return i; });
 }
 
