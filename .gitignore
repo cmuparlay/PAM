@@ -3,3 +3,5 @@ interval/intervalTree
 range_query/rs_test
 range_query/rs_test_list
 range_query/rt_test
+
+build

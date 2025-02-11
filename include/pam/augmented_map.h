@@ -89,7 +89,12 @@ public:
   template<class Bin_Op>
   static M multi_insert_combine(M m, parlay::sequence<E> S, Bin_Op f,  // ?? should it be &
 				bool seq_inplace = false) {
-    return to_aug(Map::multi_insert_combine(std::move(m), S, f, seq_inplace));}
+    if (seq_inplace) {
+      return to_aug(Map::multi_insert_combine(std::move(m), S, f));
+    } else {
+      return to_aug(Map::multi_insert_combine_xx(std::move(m), S, f));
+    }
+  }
   template<class Val, class Reduce>
   static M multi_insert_reduce(M m, parlay::sequence<pair<K,Val>> S, Reduce g) {  // ?? should it be &
     return to_aug(Map::multi_insert_reduce(std::move(m), S, g)); }
