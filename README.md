@@ -33,7 +33,7 @@ To define an augmented map using PAM, user need to specify the parameters includ
 Then an augmented map is defined with C++ template as 
 
 ```
-augmented_map<entry>.
+aug_map<entry>.
 ```
 
 Here is an example of defining an augmented map "m" that has integer keys and values and is augmented with value sums (similar as the augmented sum example in our paper [1]):
@@ -51,7 +51,7 @@ struct entry {
   static aug_t combine(aug_t a, aug_t b) { 
     return a+b;}
 };
-augmented_map<entry> m;
+aug_map<entry> m;
 ```
 
 Note that a plain ordered map is defined as an augmented map with no augmentation (i.e., it only has K, <_K and V in its entry) and a plain ordered set is similarly defined as an augmented map with no augmentation and no value type.
@@ -75,7 +75,7 @@ pam_map<entry> m;
 
 Another example can be found in [2], which shows how to implement an interval tree using the PAM interface.
 
-Keys, values and augmented values and be of any arbitrary types, even an another augmented_map (tree) structure. 
+Keys, values and augmented values and be of any arbitrary types, even an another aug_map (tree) structure. 
 
 ## Hardware dependencies
 
