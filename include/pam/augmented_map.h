@@ -83,17 +83,12 @@ public:
   //static M multi_insert(M m, parlay::sequence<E> &&SS, bool sequential) { // ?? should it be &
   //  return Map::multi_insert_xx(std::move(m), std::move(SS), sequential);}
   
-  static M multi_delete(M m, parlay::sequence<K> SS, bool seq_inplace = false) {  // ?? should it be &
-    return to_aug(Map::multi_delete(std::move(m), SS, seq_inplace));}
+  static M multi_delete(M m, parlay::sequence<K> SS) {
+    return to_aug(Map::multi_delete(std::move(m), SS));}
 	
   template<class Bin_Op>
-  static M multi_insert_combine(M m, parlay::sequence<E> S, Bin_Op f,  // ?? should it be &
-				bool seq_inplace = false) {
-    if (seq_inplace) {
-      return to_aug(Map::multi_insert_combine(std::move(m), S, f));
-    } else {
-      return to_aug(Map::multi_insert_combine_xx(std::move(m), S, f));
-    }
+  static M multi_insert_combine(M m, parlay::sequence<E> S, Bin_Op f) {
+    return to_aug(Map::multi_insert_combine(std::move(m), S, f));
   }
   template<class Val, class Reduce>
   static M multi_insert_reduce(M m, parlay::sequence<pair<K,Val>> S, Reduce g) {  // ?? should it be &
